@@ -1,0 +1,4 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- HTTP 개발 서버는 dev/debug 빌드에서만 허용 -->
+  <application android:usesCleartextTraffic="${allowCleartextTraffic}" />
+</manifest>

@@ -1,0 +1,1752 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Quiz Backend API",
+    "description": "강의 자료로 퀴즈를 만들고 풀이를 분석하는 앱의 API 다.\n오류는 HTTP 상태와 함께 ProblemDetail 형식으로 오고, 앱은 `code` 로 분기한다.\n로그인이 필요한 API 에 토큰이 없거나 만료되면 `UNAUTHORIZED`(401) 다.\n응답의 필드는 항상 있고, 값이 없으면 빼지 않고 `null` 로 보낸다.",
+    "version": "v1"
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com",
+      "description": "Generated server url"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "User",
+      "description": "내 정보"
+    },
+    {
+      "name": "Material",
+      "description": "강의 자료 업로드, 목록, 자료별 학습 기록"
+    },
+    {
+      "name": "QuizGeneration",
+      "description": "퀴즈 생성 요청과 진행 상황"
+    },
+    {
+      "name": "Auth",
+      "description": "가입, 로그인, 토큰 재발급, 로그아웃"
+    },
+    {
+      "name": "Quiz",
+      "description": "만든 퀴즈 조회"
+    },
+    {
+      "name": "QuizHistory",
+      "description": "내 퀴즈 목록과 풀이 기록"
+    },
+    {
+      "name": "WrongAnswer",
+      "description": "오답 노트와 복습 채점"
+    },
+    {
+      "name": "Submission",
+      "description": "퀴즈 제출과 채점"
+    },
+    {
+      "name": "LearningProfile",
+      "description": "풀이 기록으로 본 내 학습 상태"
+    }
+  ],
+  "paths": {
+    "/users/me/wrong-answers/submissions": {
+      "post": {
+        "tags": [
+          "WrongAnswer"
+        ],
+        "summary": "오답 노트 복습 채점",
+        "description": "오답 노트에서 푼 답을 한 개 이상 보내면 서버가 다시 채점해 문제마다 맞았는지 돌려준다. 여러 퀴즈의 문제를 섞어 보내도 된다.\n보낸 문제만 채점하고, 보내지 않은 문제는 그대로 둔다. 맞힌 문제는 오답 노트에서 빠지고, 틀린 문제는 틀린 횟수가 늘어난다.\n결과는 블룸 유형별 정답률, 약한 개념, 자료의 정답·오답 수에 들어가고, 퀴즈별 기록(푼 횟수, 최근 점수)은 바뀌지 않는다.\n같은 답을 두 번 보내면 두 번 기록되니, 한 번 보낸 답은 다시 보내지 않는다.\n오류: INVALID_INPUT(400, 답이 없거나 필드가 빠짐), INVALID_SUBMISSION(400, 같은 문제를 두 번 보내거나\n내 문제가 아니거나 그 문제의 보기가 아님), UNAUTHORIZED(401)",
+        "operationId": "submitWrongAnswerReview",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitQuizRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "오류. `code` 로 종류를 구분한다",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/quizzes/{quizId}/submissions": {
+      "post": {
+        "tags": [
+          "Submission"
+        ],
+        "summary": "퀴즈 제출",
+        "description": "퀴즈 한 판을 끝까지 푼 답을 제출하면 서버가 채점해 문제마다 맞았는지 돌려준다.\n푼 문제만 보내고, 보내지 않은 문제는 안 푼 것으로 보고 틀림으로 저장한다. 같은 퀴즈를 여러 번 제출할 수 있다.\n틀린 문제와 안 푼 문제는 오답 노트에 들어가고, 오답 노트에 있던 문제를 맞히면 해결된다.\n정답과 해설은 퀴즈 조회(GET /quizzes/{quizId}) 응답에 있다.\n오류: INVALID_INPUT(400, 답이 없거나 필드가 빠짐), INVALID_SUBMISSION(400, 같은 문제를 두 번 보내거나\n이 퀴즈에 없는 보기, 다른 문제의 보기), QUIZ_NOT_FOUND(404, 없거나 내 것이 아닌 퀴즈), UNAUTHORIZED(401)",
+        "operationId": "submitQuiz",
+        "parameters": [
+          {
+            "name": "quizId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitQuizRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "오류. `code` 로 종류를 구분한다",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/materials": {
+      "get": {
+        "tags": [
+          "Material"
+        ],
+        "summary": "내 자료 목록",
+        "description": "최근에 올린 자료부터 전체를 준다. 자료마다 그 자료로 만든 문제 수와 맞힌 수, 틀린 수, 정답률을 같이 준다.\n같은 문제를 여러 번 풀었으면 가장 최근 답 하나로 세고, 안 푼 문제는 틀린 것으로 센다.\n퀴즈를 만드는 중이면 generating 이 true 다. 오류: UNAUTHORIZED(401)",
+        "operationId": "getMyMaterials",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MaterialResponse"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "오류. `code` 로 종류를 구분한다",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Material"
+        ],
+        "summary": "PDF 업로드",
+        "description": "PDF 를 올리면 페이지별 글자를 추출해 저장하고 materialId 를 준다. 추출까지 요청 안에서 끝나 몇 초 걸릴 수 있다.\ntitle 을 비우면 확장자를 뺀 파일 이름을 제목으로 쓴다. 파일은 20MB, 글자가 있는 페이지는 100쪽까지다.\n오류: INVALID_INPUT(400, 파일 없음), INVALID_FILE(400, PDF 가 아님), FILE_TOO_LARGE(413),\nEXTRACTION_FAILED(422, 글자를 뽑을 수 없는 PDF), TOO_MANY_PAGES(422), UNAUTHORIZED(401)",
+        "operationId": "uploadMaterial",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadMaterialRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadMaterialResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "오류. `code` 로 종류를 구분한다",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/materials/{materialId}/quizzes": {
+      "post": {
+        "tags": [
+          "QuizGeneration"
+        ],
+        "summary": "퀴즈 생성 요청",
+        "description": "내 자료로 퀴즈 생성을 요청한다. 생성은 백그라운드에서 수십 초 걸려 202 와 jobId 를 바로 준다.\n진행 상황은 GET /jobs/{jobId}/events 로 받고, DONE 이 되면 quizId 로 퀴즈를 조회한다.\n생성 요청은 사용자마다 하루(한국 시간 자정 기준) 정해진 횟수까지이고, 진행 중인 작업이 있으면 끝난 뒤에 다시 요청한다.\n오류: INVALID_INPUT(400), MATERIAL_NOT_FOUND(404, 없거나 내 것이 아닌 자료),\nGENERATION_IN_PROGRESS(409, 진행 중인 작업이 있음), DAILY_GENERATION_LIMIT_EXCEEDED(429, 오늘 횟수를 다 씀), UNAUTHORIZED(401)",
+        "operationId": "requestQuizGeneration",
+        "parameters": [
+          {
+            "name": "materialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateQuizRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateQuizResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "오류. `code` 로 종류를 구분한다",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/concepts/{conceptId}/quizzes": {
+      "post": {
+        "tags": [
+          "QuizGeneration"
+        ],
+        "summary": "약한 개념으로 퀴즈 생성 요청",
+        "description": "개념 하나가 나온 페이지만으로 약점 퀴즈를 만든다. conceptId 는 약한 개념이나 자료의 개념 목록이 주는 id 다.\n요청 본문, 응답, 이후 진행 상황과 퀴즈 조회는 자료로 만들 때와 같고, 문제 수만 5개다.\n그 개념으로 최근에 낸 문제와 겹치지 않게 만들고, 만든 문제의 결과는 그 개념의 정답률에 들어간다.\n하루 생성 횟수와 진행 중 작업 제한은 자료로 만들 때와 함께 센다. 만든 퀴즈는 자료가 없어 materialId 가 null 이다.\n오류: INVALID_INPUT(400), CONCEPT_NOT_FOUND(404, 없거나 내 것이 아닌 개념),\nGENERATION_IN_PROGRESS(409), DAILY_GENERATION_LIMIT_EXCEEDED(429), UNAUTHORIZED(401)",
+        "operationId": "requestWeaknessQuizGeneration",
+        "parameters": [
+          {
+            "name": "conceptId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateQuizRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateQuizResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "오류. `code` 로 종류를 구분한다",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/signup": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "회원가입",
+        "description": "이메일은 대소문자를 구분하지 않는다. 가입만 하고 로그인은 따로 한다.\n오류: INVALID_INPUT(400), EMAIL_ALREADY_EXISTS(409)",
+        "operationId": "signup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignupResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "오류. `code` 로 종류를 구분한다",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "토큰 재발급",
+        "description": "Refresh 토큰으로 두 토큰을 새로 받는다. 쓴 Refresh 토큰은 폐기되므로 두 토큰을 모두 바꿔 저장한다.\n이미 쓴 토큰이 다시 오면 그 사용자의 모든 토큰을 폐기한다. 재발급은 한 번에 하나만 보낸다.\n오류: INVALID_INPUT(400), INVALID_REFRESH_TOKEN(401, 재발급을 다시 시도하지 말고 로그인 화면으로)",
+        "operationId": "refreshToken",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "오류. `code` 로 종류를 구분한다",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "로그아웃",
+        "description": "Refresh 토큰을 폐기한다. 토큰이 없거나 이미 폐기됐어도 204 로 답한다. 앱은 응답과 상관없이 저장한 토큰을 지운다.\n오류: INVALID_INPUT(400)",
+        "operationId": "logout",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "default": {
+            "description": "오류. `code` 로 종류를 구분한다",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "로그인",
+        "description": "Access 토큰(30분)과 Refresh 토큰(14일)을 준다. expiresIn 은 Access 토큰이 만료될 때까지 남은 초다.\n오류: INVALID_INPUT(400), INVALID_CREDENTIALS(401, 이메일과 비밀번호 중 무엇이 틀렸는지 구분하지 않는다)",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "오류. `code` 로 종류를 구분한다",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "내 정보 조회",
+        "description": "토큰의 사용자 정보를 준다. 오류: UNAUTHORIZED(401)",
+        "operationId": "getMe",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "오류. `code` 로 종류를 구분한다",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me/wrong-answers": {
+      "get": {
+        "tags": [
+          "WrongAnswer"
+        ],
+        "summary": "오답 노트",
+        "description": "아직 해결하지 않은 오답을 처음 틀린 순서로 전체 준다. 퀴즈에서 틀리거나 안 푼 문제가 들어오고, 다시 맞히면 빠진다.\n문제마다 보기와 정답(isCorrect), 해설, 근거와 페이지, 개념, 자료, 틀린 횟수를 준다. 앱이 바로 채점할 수 있다.\n오류: UNAUTHORIZED(401)",
+        "operationId": "getMyWrongAnswers",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WrongAnswerResponse"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "오류. `code` 로 종류를 구분한다",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me/weak-concepts": {
+      "get": {
+        "tags": [
+          "LearningProfile"
+        ],
+        "summary": "약한 개념",
+        "description": "기준 수 이상 푼 개념 중 정답률이 낮은 순으로 몇 개만 준다. 정답률이 같으면 많이 푼 개념이 먼저다.\n같은 문제를 여러 번 풀었으면 가장 최근 답 하나만 센다. 기준을 넘는 개념이 없으면 빈 목록이다.\n개념은 자료마다 따로 있어, 이름이 같아도 자료가 다르면 따로 나온다.\n오류: UNAUTHORIZED(401)",
+        "operationId": "getMyWeakConcepts",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WeakConceptResponse"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "오류. `code` 로 종류를 구분한다",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me/cognitive-type-scores": {
+      "get": {
+        "tags": [
+          "LearningProfile"
+        ],
+        "summary": "블룸 유형별 정답률",
+        "description": "기억, 이해, 적용, 분석, 평가 순서로 다섯 유형을 항상 모두 준다. 같은 문제를 여러 번 풀었으면 가장 최근 답 하나만 센다.\n푼 적 없는 유형은 answeredCount 가 0, accuracy 가 null 이다. isEnoughData 가 false 면 푼 문제가 적어 정답률을 믿기 어렵다.\n오류: UNAUTHORIZED(401)",
+        "operationId": "getMyCognitiveTypeScores",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CognitiveTypeScoreResponse"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "오류. `code` 로 종류를 구분한다",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/quizzes": {
+      "get": {
+        "tags": [
+          "QuizHistory"
+        ],
+        "summary": "내 퀴즈 목록",
+        "description": "내가 만든 퀴즈를 최근 것부터 전체 준다. materialId 를 주면 그 자료로 만든 퀴즈만 준다(남의 자료면 빈 목록). 퀴즈마다 문제 수, 푼 횟수, 가장 최근 제출의 맞힌 수와 제출 시각을 같이 준다.\n아직 안 푼 퀴즈는 lastSubmission 이 null 이다. 문제와 보기는 GET /quizzes/{quizId} 로 받는다.\n오류: UNAUTHORIZED(401)",
+        "operationId": "getMyQuizzes",
+        "parameters": [
+          {
+            "name": "materialId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/QuizSummaryResponse"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "오류. `code` 로 종류를 구분한다",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/quizzes/{quizId}": {
+      "get": {
+        "tags": [
+          "Quiz"
+        ],
+        "summary": "퀴즈 조회",
+        "description": "문제와 보기를 orderNo 순서로 준다. isCorrect 로 고르는 즉시 정답을 보여 줄 수 있고, 기록에 남는 채점은 제출할 때 서버가 한다.\nsourceQuote 와 sourcePageNo 는 문제의 근거가 된 원문과 그 쪽 번호다.\n오류: QUIZ_NOT_FOUND(404, 없거나 내 것이 아닌 퀴즈), UNAUTHORIZED(401)",
+        "operationId": "getQuiz",
+        "parameters": [
+          {
+            "name": "quizId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuizResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "오류. `code` 로 종류를 구분한다",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/materials/{materialId}": {
+      "get": {
+        "tags": [
+          "Material"
+        ],
+        "summary": "자료 상세",
+        "description": "자료 하나의 정보와 문제 수, 맞힌 수, 틀린 수를 준다. 값을 세는 방식은 내 자료 목록과 같다.\n이 자료로 만든 퀴즈 목록은 GET /quizzes?materialId= 로 받는다.\n오류: MATERIAL_NOT_FOUND(404, 없거나 남의 자료), UNAUTHORIZED(401)",
+        "operationId": "getMyMaterial",
+        "parameters": [
+          {
+            "name": "materialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaterialResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "오류. `code` 로 종류를 구분한다",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/materials/{materialId}/concepts": {
+      "get": {
+        "tags": [
+          "Material"
+        ],
+        "summary": "자료의 개념별 상태",
+        "description": "자료에서 뽑은 개념마다 나온 페이지, 문제 수, 맞힌 수, 정답률, 상태를 준다.\n부족한 개념부터(WEAK, GOOD, PERFECT, UNCHECKED 순), 같은 상태면 정답률이 낮은 것, 그다음 앞 페이지의 개념부터 준다.\n안 푼 문제는 틀린 것으로 세고, 하나도 안 풀었으면 UNCHECKED 다.\n오류: MATERIAL_NOT_FOUND(404, 없거나 남의 자료), UNAUTHORIZED(401)",
+        "operationId": "getMyMaterialConcepts",
+        "parameters": [
+          {
+            "name": "materialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MaterialConceptResponse"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "오류. `code` 로 종류를 구분한다",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jobs/{jobId}": {
+      "get": {
+        "tags": [
+          "QuizGeneration"
+        ],
+        "summary": "생성 작업 상태 조회",
+        "description": "작업 상태를 한 번 준다. 상태는 PENDING → PROCESSING → DONE 또는 FAILED 로 바뀐다.\n작업이 실패해도 조회는 200 이고, 실패 사유는 errorCode 다: GENERATION_FAILED, NO_VALID_QUESTIONS, INTERNAL_ERROR.\n오류: JOB_NOT_FOUND(404, 없거나 내 것이 아닌 작업), UNAUTHORIZED(401)",
+        "operationId": "getGenerationJob",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationJobResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "오류. `code` 로 종류를 구분한다",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jobs/{jobId}/events": {
+      "get": {
+        "tags": [
+          "QuizGeneration"
+        ],
+        "summary": "생성 진행 상황 구독 (SSE)",
+        "description": "text/event-stream 으로 연결을 열어 둔다. 연결 즉시 현재 상태를 한 번 보내고, 상태가 바뀔 때마다 보낸다.\n이벤트 이름은 status, data 는 GET /jobs/{jobId} 응답과 같은 JSON 이다. DONE 이나 FAILED 를 보내면 연결을 닫는다.\n그 전에 끊기면 다시 구독하면 된다. 연결은 5분이 지나면 닫힌다. 같은 작업을 다시 구독하면 이전 연결은 닫힌다.\n오류: JOB_NOT_FOUND(404), UNAUTHORIZED(401)",
+        "operationId": "subscribeGenerationJob",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "상태 이벤트 스트림",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationJobResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "오류. `code` 로 종류를 구분한다",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnswerRequest": {
+        "required": [
+          "optionId",
+          "questionId"
+        ],
+        "type": "object",
+        "properties": {
+          "questionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "optionId": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "SubmitQuizRequest": {
+        "required": [
+          "answers"
+        ],
+        "type": "object",
+        "properties": {
+          "answers": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnswerRequest"
+            }
+          }
+        }
+      },
+      "QuestionResultResponse": {
+        "required": [
+          "correct",
+          "questionId"
+        ],
+        "type": "object",
+        "properties": {
+          "questionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "correct": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SubmissionResponse": {
+        "required": [
+          "correctCount",
+          "results",
+          "submissionId",
+          "totalCount"
+        ],
+        "type": "object",
+        "properties": {
+          "submissionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "correctCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionResultResponse"
+            }
+          }
+        }
+      },
+      "UploadMaterialRequest": {
+        "required": [
+          "file"
+        ],
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary"
+          },
+          "title": {
+            "maxLength": 255,
+            "minLength": 0,
+            "type": "string"
+          }
+        }
+      },
+      "UploadMaterialResponse": {
+        "required": [
+          "materialId"
+        ],
+        "type": "object",
+        "properties": {
+          "materialId": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "GenerateQuizRequest": {
+        "required": [
+          "difficulty",
+          "format"
+        ],
+        "type": "object",
+        "properties": {
+          "format": {
+            "type": "string",
+            "enum": [
+              "MULTIPLE_CHOICE",
+              "OX"
+            ]
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": [
+              "EASY",
+              "NORMAL",
+              "HARD"
+            ]
+          }
+        }
+      },
+      "GenerateQuizResponse": {
+        "required": [
+          "jobId"
+        ],
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "SignupRequest": {
+        "required": [
+          "email",
+          "nickname",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "maxLength": 64,
+            "minLength": 8,
+            "type": "string"
+          },
+          "nickname": {
+            "maxLength": 50,
+            "minLength": 1,
+            "type": "string"
+          }
+        }
+      },
+      "SignupResponse": {
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "RefreshRequest": {
+        "required": [
+          "refreshToken"
+        ],
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "maxLength": 2147483647,
+            "minLength": 1,
+            "type": "string"
+          }
+        }
+      },
+      "TokenResponse": {
+        "required": [
+          "accessToken",
+          "expiresIn",
+          "refreshToken"
+        ],
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "LoginRequest": {
+        "required": [
+          "email",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "password": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        }
+      },
+      "MeResponse": {
+        "required": [
+          "email",
+          "id",
+          "nickname"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "email": {
+            "type": "string"
+          },
+          "nickname": {
+            "type": "string"
+          }
+        }
+      },
+      "OptionResponse": {
+        "required": [
+          "content",
+          "isCorrect",
+          "optionId",
+          "orderNo"
+        ],
+        "type": "object",
+        "properties": {
+          "optionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "orderNo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "content": {
+            "type": "string"
+          },
+          "isCorrect": {
+            "type": "boolean"
+          }
+        },
+        "description": "orderNo 순서. 정답 보기는 isCorrect 가 true 다"
+      },
+      "WrongAnswerResponse": {
+        "required": [
+          "cognitiveType",
+          "conceptName",
+          "content",
+          "explanation",
+          "format",
+          "lastWrongAt",
+          "materialId",
+          "materialTitle",
+          "options",
+          "questionId",
+          "quizId",
+          "sourcePageNo",
+          "sourceQuote",
+          "wrongCount"
+        ],
+        "type": "object",
+        "properties": {
+          "questionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "quizId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "MULTIPLE_CHOICE",
+              "OX"
+            ]
+          },
+          "content": {
+            "type": "string"
+          },
+          "cognitiveType": {
+            "type": "string",
+            "enum": [
+              "REMEMBER",
+              "UNDERSTAND",
+              "APPLY",
+              "ANALYZE",
+              "EVALUATE"
+            ]
+          },
+          "conceptName": {
+            "type": "string"
+          },
+          "materialId": {
+            "type": "integer",
+            "description": "개념이 나온 자료. 자료 없이 만든 약점 퀴즈의 문제도 원래 자료가 나온다",
+            "format": "int64"
+          },
+          "materialTitle": {
+            "type": "string"
+          },
+          "explanation": {
+            "type": "string"
+          },
+          "sourceQuote": {
+            "type": "string"
+          },
+          "sourcePageNo": {
+            "type": "integer",
+            "description": "근거가 있는 PDF 페이지 번호(1부터)",
+            "format": "int32",
+            "nullable": true
+          },
+          "options": {
+            "type": "array",
+            "description": "orderNo 순서. 정답 보기는 isCorrect 가 true 다",
+            "items": {
+              "$ref": "#/components/schemas/OptionResponse"
+            }
+          },
+          "wrongCount": {
+            "type": "integer",
+            "description": "이 문제를 틀린 횟수. 퀴즈와 오답 노트에서 틀린 것을 모두 센다",
+            "format": "int32"
+          },
+          "lastWrongAt": {
+            "type": "string",
+            "description": "가장 최근에 틀린 시각",
+            "format": "date-time"
+          }
+        }
+      },
+      "WeakConceptResponse": {
+        "required": [
+          "accuracy",
+          "answeredCount",
+          "conceptId",
+          "conceptName",
+          "correctAnswerCount",
+          "materialId",
+          "materialTitle"
+        ],
+        "type": "object",
+        "properties": {
+          "conceptId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "conceptName": {
+            "type": "string"
+          },
+          "materialId": {
+            "type": "integer",
+            "description": "개념이 나온 강의 자료. 자료가 다르면 이름이 같아도 다른 개념이다",
+            "format": "int64"
+          },
+          "materialTitle": {
+            "type": "string"
+          },
+          "answeredCount": {
+            "type": "integer",
+            "description": "이 개념에서 푼 문제 수. 같은 문제를 여러 번 풀었으면 한 번만 센다",
+            "format": "int32"
+          },
+          "correctAnswerCount": {
+            "type": "integer",
+            "description": "그중 가장 최근 답이 맞은 문제 수",
+            "format": "int32"
+          },
+          "accuracy": {
+            "type": "number",
+            "description": "맞힌 수 / 푼 수 (0 ~ 1)",
+            "format": "double"
+          }
+        }
+      },
+      "CognitiveTypeScoreResponse": {
+        "required": [
+          "accuracy",
+          "answeredCount",
+          "cognitiveType",
+          "correctAnswerCount",
+          "isEnoughData"
+        ],
+        "type": "object",
+        "properties": {
+          "cognitiveType": {
+            "type": "string",
+            "enum": [
+              "REMEMBER",
+              "UNDERSTAND",
+              "APPLY",
+              "ANALYZE",
+              "EVALUATE"
+            ]
+          },
+          "answeredCount": {
+            "type": "integer",
+            "description": "이 유형에서 푼 문제 수. 같은 문제를 여러 번 풀었으면 한 번만 센다",
+            "format": "int32"
+          },
+          "correctAnswerCount": {
+            "type": "integer",
+            "description": "그중 가장 최근 답이 맞은 문제 수",
+            "format": "int32"
+          },
+          "accuracy": {
+            "type": "number",
+            "description": "맞힌 수 / 푼 수 (0 ~ 1). 이 유형을 푼 적이 없으면 null",
+            "format": "double",
+            "nullable": true
+          },
+          "isEnoughData": {
+            "type": "boolean",
+            "description": "푼 문제가 기준 수 이상이면 true. false 면 정답률을 믿기 어려워 데이터 부족으로 보여 준다"
+          }
+        }
+      },
+      "LastSubmissionResponse": {
+        "required": [
+          "correctCount",
+          "submittedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "correctCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "QuizSummaryResponse": {
+        "required": [
+          "createdAt",
+          "difficulty",
+          "format",
+          "lastSubmission",
+          "materialId",
+          "materialTitle",
+          "questionCount",
+          "quizId",
+          "submissionCount"
+        ],
+        "type": "object",
+        "properties": {
+          "quizId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "materialId": {
+            "type": "integer",
+            "description": "약점 퀴즈처럼 자료 없이 만든 퀴즈는 null",
+            "format": "int64",
+            "nullable": true
+          },
+          "materialTitle": {
+            "type": "string",
+            "description": "약점 퀴즈처럼 자료 없이 만든 퀴즈는 null",
+            "nullable": true
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "MULTIPLE_CHOICE",
+              "OX"
+            ]
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": [
+              "EASY",
+              "NORMAL",
+              "HARD"
+            ]
+          },
+          "questionCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "submissionCount": {
+            "type": "integer",
+            "description": "이 퀴즈를 제출한 횟수",
+            "format": "int32"
+          },
+          "lastSubmission": {
+            "description": "가장 최근 제출의 결과. 아직 안 풀었으면 null",
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LastSubmissionResponse"
+              }
+            ]
+          }
+        }
+      },
+      "QuestionResponse": {
+        "required": [
+          "cognitiveType",
+          "conceptName",
+          "content",
+          "explanation",
+          "options",
+          "orderNo",
+          "questionId",
+          "sourcePageNo",
+          "sourceQuote"
+        ],
+        "type": "object",
+        "properties": {
+          "questionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "orderNo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "content": {
+            "type": "string"
+          },
+          "cognitiveType": {
+            "type": "string",
+            "enum": [
+              "REMEMBER",
+              "UNDERSTAND",
+              "APPLY",
+              "ANALYZE",
+              "EVALUATE"
+            ]
+          },
+          "conceptName": {
+            "type": "string"
+          },
+          "explanation": {
+            "type": "string"
+          },
+          "sourceQuote": {
+            "type": "string"
+          },
+          "sourcePageNo": {
+            "type": "integer",
+            "description": "근거가 있는 원본 PDF 쪽 번호",
+            "format": "int32",
+            "nullable": true
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OptionResponse"
+            }
+          }
+        }
+      },
+      "QuizResponse": {
+        "required": [
+          "difficulty",
+          "format",
+          "materialId",
+          "questions",
+          "quizId"
+        ],
+        "type": "object",
+        "properties": {
+          "quizId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "materialId": {
+            "type": "integer",
+            "description": "약점 퀴즈처럼 자료 없이 만든 퀴즈는 null",
+            "format": "int64",
+            "nullable": true
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "MULTIPLE_CHOICE",
+              "OX"
+            ]
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": [
+              "EASY",
+              "NORMAL",
+              "HARD"
+            ]
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuestionResponse"
+            }
+          }
+        }
+      },
+      "MaterialResponse": {
+        "required": [
+          "accuracy",
+          "answeredCount",
+          "correctCount",
+          "createdAt",
+          "generating",
+          "materialId",
+          "originalFilename",
+          "pageCount",
+          "questionCount",
+          "title",
+          "wrongCount"
+        ],
+        "type": "object",
+        "properties": {
+          "materialId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": {
+            "type": "string"
+          },
+          "originalFilename": {
+            "type": "string"
+          },
+          "pageCount": {
+            "type": "integer",
+            "description": "글자가 있어 저장된 페이지 수",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "올린 시각",
+            "format": "date-time"
+          },
+          "questionCount": {
+            "type": "integer",
+            "description": "이 자료로 만든 퀴즈들의 문제 수 합",
+            "format": "int32"
+          },
+          "answeredCount": {
+            "type": "integer",
+            "description": "그중 한 번이라도 푼 문제 수",
+            "format": "int32"
+          },
+          "correctCount": {
+            "type": "integer",
+            "description": "가장 최근 답이 맞은 문제 수",
+            "format": "int32"
+          },
+          "wrongCount": {
+            "type": "integer",
+            "description": "questionCount - correctCount. 안 푼 문제도 틀린 것으로 센다",
+            "format": "int32"
+          },
+          "accuracy": {
+            "type": "number",
+            "description": "correctCount / questionCount (0 ~ 1). 문제를 만든 적이 없으면 null",
+            "format": "double",
+            "nullable": true
+          },
+          "generating": {
+            "type": "boolean",
+            "description": "이 자료로 퀴즈를 만드는 중이면 true"
+          }
+        }
+      },
+      "MaterialConceptResponse": {
+        "required": [
+          "accuracy",
+          "answeredCount",
+          "conceptId",
+          "conceptName",
+          "correctCount",
+          "pageNos",
+          "questionCount",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "conceptId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "conceptName": {
+            "type": "string"
+          },
+          "pageNos": {
+            "type": "array",
+            "description": "개념이 나온 PDF 페이지 번호(1부터), 작은 번호부터. 떨어져 있을 수 있어 범위가 아니라 목록으로 준다",
+            "items": {
+              "type": "integer",
+              "description": "개념이 나온 PDF 페이지 번호(1부터), 작은 번호부터. 떨어져 있을 수 있어 범위가 아니라 목록으로 준다",
+              "format": "int32"
+            }
+          },
+          "questionCount": {
+            "type": "integer",
+            "description": "이 개념의 문제 수",
+            "format": "int32"
+          },
+          "answeredCount": {
+            "type": "integer",
+            "description": "그중 한 번이라도 푼 문제 수",
+            "format": "int32"
+          },
+          "correctCount": {
+            "type": "integer",
+            "description": "가장 최근 답이 맞은 문제 수",
+            "format": "int32"
+          },
+          "accuracy": {
+            "type": "number",
+            "description": "correctCount / questionCount (0 ~ 1). 안 푼 문제도 틀린 것으로 센다. 문제가 없으면 null",
+            "format": "double",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "description": "WEAK: 정답률이 기준보다 낮다, GOOD: 기준 이상이지만 다 맞히지 못했다,\nPERFECT: 모두 맞혔다, UNCHECKED: 하나도 풀지 않았다",
+            "enum": [
+              "WEAK",
+              "GOOD",
+              "PERFECT",
+              "UNCHECKED"
+            ]
+          }
+        }
+      },
+      "GenerationJobResponse": {
+        "required": [
+          "errorCode",
+          "jobId",
+          "quizId",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "PROCESSING",
+              "DONE",
+              "FAILED"
+            ]
+          },
+          "quizId": {
+            "type": "integer",
+            "description": "DONE 일 때만 값이 있다",
+            "format": "int64",
+            "nullable": true
+          },
+          "errorCode": {
+            "type": "string",
+            "description": "FAILED 일 때만 값이 있다",
+            "nullable": true
+          }
+        }
+      },
+      "ErrorResponse": {
+        "required": [
+          "code",
+          "detail",
+          "instance",
+          "status",
+          "title",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "about:blank"
+          },
+          "title": {
+            "type": "string",
+            "example": "Not Found"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "example": 404
+          },
+          "detail": {
+            "type": "string",
+            "description": "사용자에게 보여 줄 한국어 메시지",
+            "example": "퀴즈를 찾을 수 없습니다"
+          },
+          "instance": {
+            "type": "string",
+            "example": "/quizzes/42"
+          },
+          "code": {
+            "type": "string",
+            "description": "오류 종류. 앱은 이 값으로 분기한다",
+            "example": "QUIZ_NOT_FOUND"
+          }
+        },
+        "description": "RFC 9457 ProblemDetail 에 오류 코드를 더한 모양"
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

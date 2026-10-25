@@ -1,0 +1,5 @@
+storePassword=REPLACE_WITH_STORE_PASSWORD
+keyPassword=REPLACE_WITH_KEY_PASSWORD
+keyAlias=upload
+# 절대 경로 또는 android/ 기준 상대 경로
+storeFile=/absolute/path/to/upload-keystore.jks

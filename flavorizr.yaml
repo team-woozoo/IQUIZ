@@ -1,0 +1,32 @@
+flavors:
+  dev:
+    app:
+      name: "[DEV]iquiz"
+    android:
+      applicationId: "com.bae.iquiz.dev"
+    ios:
+      bundleId: "com.bae.iquiz.dev"
+
+  prod:
+    app:
+      name: "iquiz"
+    android:
+      applicationId: "com.bae.iquiz.prod"
+    ios:
+      bundleId: "com.bae.iquiz.prod"
+
+instructions:
+  - assets:download
+  - assets:extract
+  - android:androidManifest
+  - android:flavorizrGradle
+  - android:buildGradle
+  - android:dummyAssets
+  - ios:podfile
+  - ios:xcconfig
+  - ios:buildTargets
+  - ios:schema
+  - ios:dummyAssets
+  - ios:plist
+  - ios:launchScreen
+  - assets:clean

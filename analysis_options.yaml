@@ -1,0 +1,59 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  # build_runner/generated 파일은 분석 대상에서 제외
+  exclude:
+    - "**/*.g.dart"
+    - build/**
+    - android/**
+    - ios/**
+
+  language:
+    strict-casts: true # 암시적 다운캐스팅 금지
+
+  errors:
+    missing_required_param: error # required 파라미터 누락은 에러 처리
+    missing_return: error # 반환형 있는 함수의 return 누락은 에러 처리
+
+  # plugins:
+  #   - custom_lint
+
+linter:
+  rules:
+    # 추론 가능한 지역 변수 타입 생략
+    - omit_local_variable_types
+
+    # const 사용
+    - prefer_const_constructors
+    - prefer_const_literals_to_create_immutables
+    - prefer_const_declarations
+
+    # 불필요한 변환/구문 방지
+    - use_to_and_as_if_applicable
+    - unnecessary_statements
+
+    # 코드 스타일 일관성
+    - require_trailing_commas
+
+    # 상태/불변성 관리
+    - use_super_parameters
+
+    # 실서비스 로그 오염 방지
+    - avoid_print
+
+    # 조건문에 불필요한 리터럴 방지
+    - literal_only_boolean_expressions 
+
+    # 비동기 처리
+    - avoid_void_async
+    - unawaited_futures
+    - discarded_futures
+
+    # 타입과 null 안전성
+    - type_annotate_public_apis
+    - unnecessary_null_checks
+
+    # 호출 의도와 코드 간결화
+    - avoid_positional_boolean_parameters
+    - unnecessary_lambdas
+    - avoid_redundant_argument_values

@@ -1,0 +1,267 @@
+{
+  "schemaUrl": "https://api.example.com/v3/api-docs",
+  "models": {
+    "LoginRequest": {
+      "enabled": true,
+      "directory": "lib/features/auth/data_source/remote/models",
+      "fileName": "sign_in_model.dart",
+      "typeName": "SignInModel",
+      "description": "로그인 요청 정보"
+    },
+    "MeResponse": {
+      "enabled": true,
+      "directory": "lib/features/auth/data_source/remote/models",
+      "fileName": "user_model.dart",
+      "typeName": "UserModel",
+      "description": "유저 정보"
+    },
+    "RefreshRequest": {
+      "enabled": true,
+      "directory": "lib/features/auth/data_source/remote/models",
+      "fileName": "token_refresh_model.dart",
+      "typeName": "TokenRefreshModel",
+      "description": "토큰 재발급·로그아웃 요청 정보"
+    },
+    "SignupRequest": {
+      "enabled": true,
+      "directory": "lib/features/auth/data_source/remote/models",
+      "fileName": "sign_up_model.dart",
+      "typeName": "SignUpModel",
+      "description": "회원가입 요청 정보"
+    },
+    "SignupResponse": {
+      "enabled": true,
+      "directory": "lib/features/auth/data_source/remote/models",
+      "fileName": "sign_up_result_model.dart",
+      "typeName": "SignUpResultModel",
+      "description": "회원가입 결과"
+    },
+    "TokenResponse": {
+      "enabled": true,
+      "directory": "lib/features/auth/data_source/remote/models",
+      "fileName": "auth_token_model.dart",
+      "typeName": "AuthTokenModel",
+      "description": "로그인·재발급 인증 토큰"
+    },
+    "MaterialResponse": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/models",
+      "fileName": "study_material_model.dart",
+      "typeName": "StudyMaterialModel",
+      "description": "업로드한 학습 자료 정보"
+    },
+    "UploadMaterialResponse": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/models",
+      "fileName": "material_upload_result_model.dart",
+      "typeName": "MaterialUploadResultModel",
+      "description": "학습 자료 업로드 결과"
+    },
+    "GenerateQuizRequest": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/models",
+      "fileName": "quiz_generation_options_model.dart",
+      "typeName": "QuizGenerationOptionsModel",
+      "description": "퀴즈 생성 옵션"
+    },
+    "GenerateQuizRequestDifficulty": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/enums",
+      "fileName": "quiz_generation_difficulty.enum.dart",
+      "typeName": "QuizGenerationDifficulty",
+      "description": "퀴즈 생성 요청 난이도"
+    },
+    "GenerateQuizRequestFormat": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/enums",
+      "fileName": "quiz_generation_format.enum.dart",
+      "typeName": "QuizGenerationFormat",
+      "description": "퀴즈 생성 요청 형식"
+    },
+    "GenerateQuizResponse": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/models",
+      "fileName": "quiz_generation_task_model.dart",
+      "typeName": "QuizGenerationTaskModel",
+      "description": "퀴즈 생성 요청 접수 결과"
+    },
+    "GenerationJobResponse": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/models",
+      "fileName": "quiz_generation_job_model.dart",
+      "typeName": "QuizGenerationJobModel",
+      "description": "퀴즈 생성 작업 진행 정보"
+    },
+    "GenerationJobResponseStatus": {
+      "enabled": false,
+      "directory": "lib/features/quiz/data_source/remote/enums",
+      "fileName": "quiz_job_status.enum.dart",
+      "typeName": "QuizJobStatus",
+      "description": "서버 퀴즈 생성 작업 상태"
+    },
+    "OptionResponse": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/models",
+      "fileName": "quiz_option_model.dart",
+      "typeName": "QuizOptionModel",
+      "description": "퀴즈 문제 보기 정보"
+    },
+    "QuestionResponse": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/models",
+      "fileName": "quiz_question_model.dart",
+      "typeName": "QuizQuestionModel",
+      "description": "퀴즈 문제 정보"
+    },
+    "QuestionResponseCognitiveType": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/enums",
+      "fileName": "question_cognitive_type.enum.dart",
+      "typeName": "QuestionCognitiveType",
+      "description": "문제의 사고 수준"
+    },
+    "QuizResponse": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/models",
+      "fileName": "quiz_model.dart",
+      "typeName": "QuizModel",
+      "description": "퀴즈 상세 정보"
+    },
+    "QuizResponseDifficulty": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/enums",
+      "fileName": "quiz_difficulty_level.enum.dart",
+      "typeName": "QuizDifficultyLevel",
+      "description": "조회한 퀴즈 난이도"
+    },
+    "QuizResponseFormat": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/enums",
+      "fileName": "quiz_format_type.enum.dart",
+      "typeName": "QuizFormatType",
+      "description": "조회한 퀴즈 형식"
+    },
+    "AnswerRequest": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/models",
+      "fileName": "quiz_answer_model.dart",
+      "typeName": "QuizAnswerModel",
+      "description": "퀴즈 제출 답안"
+    },
+    "SubmitQuizRequest": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/models",
+      "fileName": "quiz_submit_model.dart",
+      "typeName": "QuizSubmitModel",
+      "description": "퀴즈 답안 제출 요청"
+    },
+    "SubmissionResponse": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/models",
+      "fileName": "quiz_submit_result_model.dart",
+      "typeName": "QuizSubmitResultModel",
+      "description": "퀴즈 제출 채점 결과"
+    },
+    "QuestionResultResponse": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/models",
+      "fileName": "quiz_question_result_model.dart",
+      "typeName": "QuizQuestionResultModel",
+      "description": "문제별 채점 결과"
+    },
+    "LastSubmissionResponse": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/models",
+      "fileName": "quiz_last_submission_model.dart",
+      "typeName": "QuizLastSubmissionModel",
+      "description": "최근 퀴즈 제출 기록"
+    },
+    "QuizSummaryResponse": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/models",
+      "fileName": "quiz_summary_model.dart",
+      "typeName": "QuizSummaryModel",
+      "description": "내 퀴즈 목록 요약 정보"
+    },
+    "QuizSummaryResponseFormat": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/enums",
+      "fileName": "quiz_summary_format.enum.dart",
+      "typeName": "QuizSummaryFormat",
+      "description": "퀴즈 목록의 문제 형식"
+    },
+    "QuizSummaryResponseDifficulty": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/enums",
+      "fileName": "quiz_summary_difficulty.enum.dart",
+      "typeName": "QuizSummaryDifficulty",
+      "description": "퀴즈 목록의 난이도"
+    },
+    "WeakConceptResponse": {
+      "enabled": true,
+      "directory": "lib/features/learning_profile/data_source/remote/models",
+      "fileName": "weak_concept_model.dart",
+      "typeName": "WeakConceptModel",
+      "description": "자료별 취약 개념과 최근 답안 기준 정답률"
+    },
+    "CognitiveTypeScoreResponse": {
+      "enabled": true,
+      "directory": "lib/features/learning_profile/data_source/remote/models",
+      "fileName": "cognitive_type_score_model.dart",
+      "typeName": "CognitiveTypeScoreModel",
+      "description": "인지 유형별 정답률과 데이터 충분성"
+    },
+    "CognitiveTypeScoreResponseCognitiveType": {
+      "enabled": true,
+      "directory": "lib/features/learning_profile/data_source/remote/enums",
+      "fileName": "cognitive_type_score_type.enum.dart",
+      "typeName": "CognitiveTypeScoreType",
+      "description": "학습 분석 응답의 인지 유형"
+    },
+    "MaterialConceptResponse": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/models",
+      "fileName": "material_concept_model.dart",
+      "typeName": "MaterialConceptModel",
+      "description": "자료의 개념별 학습 상태"
+    },
+    "MaterialConceptResponseStatus": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/enums",
+      "fileName": "material_concept_status.enum.dart",
+      "typeName": "MaterialConceptStatus",
+      "description": "자료 개념의 서버 학습 상태"
+    },
+    "WrongAnswerResponse": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/models",
+      "fileName": "wrong_answer_model.dart",
+      "typeName": "WrongAnswerModel",
+      "description": "미해결 오답 정보"
+    },
+    "WrongAnswerResponseFormat": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/enums",
+      "fileName": "wrong_answer_format.enum.dart",
+      "typeName": "WrongAnswerFormat",
+      "description": "오답 문제 형식"
+    },
+    "WrongAnswerResponseCognitiveType": {
+      "enabled": true,
+      "directory": "lib/features/quiz/data_source/remote/enums",
+      "fileName": "wrong_answer_cognitive_type.enum.dart",
+      "typeName": "WrongAnswerCognitiveType",
+      "description": "오답 문제의 인지 유형"
+    }
+  },
+  "exports": {
+    "lib/features/auth/data_source/remote/models": "models.dart",
+    "lib/features/quiz/data_source/remote/models": "models.dart",
+    "lib/features/learning_profile/data_source/remote/models": "models.dart"
+  },
+  "exportDescriptions": {
+    "lib/features/auth/data_source/remote/models": "인증 API 모델을 한곳에서 내보내는 파일.",
+    "lib/features/quiz/data_source/remote/models": "학습 자료·퀴즈 API 모델을 한곳에서 내보내는 파일.",
+    "lib/features/learning_profile/data_source/remote/models": "학습 분석 API 응답 모델을 한곳에서 내보내는 파일."
+  }
+}
