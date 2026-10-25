@@ -1,0 +1,10 @@
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/branding/iquiz_dev_launcher.png
+  remove_alpha_ios: true
+  background_color_ios: "#FFFFFF"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: assets/branding/iquiz_dev_foreground.png
+  # Figma 원본의 가로 DEV 띠를 전경 캔버스 양끝까지 유지합니다.
+  adaptive_icon_foreground_inset: 0
