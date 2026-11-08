@@ -23,5 +23,5 @@ Map<String, dynamic> _$QuizSubmitResultModelToJson(
   'submissionId': instance.submissionId,
   'correctCount': instance.correctCount,
   'totalCount': instance.totalCount,
-  'results': instance.results,
+  'results': instance.results.map((e) => e.toJson()).toList(),
 };

@@ -5,7 +5,7 @@ part 'quiz_last_submission_model.g.dart';
 ///
 /// 최근 퀴즈 제출 기록
 ///
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class QuizLastSubmissionModel {
   const QuizLastSubmissionModel({
     required this.correctCount,

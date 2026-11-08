@@ -10,7 +10,7 @@ part 'wrong_answer_model.g.dart';
 ///
 /// 미해결 오답 정보
 ///
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class WrongAnswerModel {
   const WrongAnswerModel({
     required this.questionId,

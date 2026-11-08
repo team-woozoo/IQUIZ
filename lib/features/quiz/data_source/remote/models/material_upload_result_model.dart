@@ -5,7 +5,7 @@ part 'material_upload_result_model.g.dart';
 ///
 /// 학습 자료 업로드 결과
 ///
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class MaterialUploadResultModel {
   const MaterialUploadResultModel({required this.materialId});
 

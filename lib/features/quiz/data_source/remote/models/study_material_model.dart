@@ -5,7 +5,7 @@ part 'study_material_model.g.dart';
 ///
 /// 업로드한 학습 자료 정보
 ///
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class StudyMaterialModel {
   const StudyMaterialModel({
     required this.materialId,

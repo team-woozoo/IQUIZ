@@ -9,7 +9,7 @@ part 'quiz_question_model.g.dart';
 ///
 /// 퀴즈 문제 정보
 ///
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class QuizQuestionModel {
   const QuizQuestionModel({
     required this.questionId,

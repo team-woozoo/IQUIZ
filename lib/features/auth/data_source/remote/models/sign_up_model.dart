@@ -5,7 +5,7 @@ part 'sign_up_model.g.dart';
 ///
 /// 회원가입 요청 정보
 ///
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class SignUpModel {
   const SignUpModel({
     required this.email,

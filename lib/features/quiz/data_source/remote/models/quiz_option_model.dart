@@ -5,7 +5,7 @@ part 'quiz_option_model.g.dart';
 ///
 /// 퀴즈 문제 보기 정보
 ///
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class QuizOptionModel {
   const QuizOptionModel({
     required this.optionId,

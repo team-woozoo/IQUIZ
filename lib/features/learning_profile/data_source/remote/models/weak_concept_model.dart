@@ -5,7 +5,7 @@ part 'weak_concept_model.g.dart';
 ///
 /// 자료별 취약 개념과 최근 답안 기준 정답률
 ///
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class WeakConceptModel {
   const WeakConceptModel({
     required this.conceptId,

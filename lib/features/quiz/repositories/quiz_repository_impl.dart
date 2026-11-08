@@ -1,25 +1,21 @@
 import 'package:dio/dio.dart';
-import 'package:iquiz/features/quiz/repositories/entities/wrong_answer_entity.dart';
-import 'package:iquiz/features/quiz/repositories/mappers/wrong_answer_mapper.dart';
 import 'package:iquiz/app/network/api_error.dart';
 import 'package:iquiz/core/error/result.dart';
+import 'package:iquiz/features/quiz/data_source/remote/models/quiz_answer_model.dart';
+import 'package:iquiz/features/quiz/data_source/remote/models/quiz_generation_options_model.dart';
 import 'package:iquiz/features/quiz/data_source/remote/models/quiz_submit_model.dart';
 import 'package:iquiz/features/quiz/data_source/remote/quiz_remote_data_source.dart';
-import 'package:iquiz/features/quiz/repositories/entities/quiz_entity.dart';
+import 'package:iquiz/features/quiz/repositories/entities/material_concept_entity.dart';
 import 'package:iquiz/features/quiz/repositories/entities/quiz_answer_entity.dart';
-import 'package:iquiz/features/quiz/repositories/entities/quiz_submission_entity.dart';
-import 'package:iquiz/features/quiz/repositories/entities/quiz_summary_entity.dart';
+import 'package:iquiz/features/quiz/repositories/entities/quiz_entity.dart';
 import 'package:iquiz/features/quiz/repositories/entities/quiz_generation_job_entity.dart';
 import 'package:iquiz/features/quiz/repositories/entities/quiz_generation_options_entity.dart';
-import 'package:iquiz/features/quiz/repositories/enums/quiz_generation_status.enum.dart';
-import 'package:iquiz/features/quiz/repositories/mappers/quiz_generation_mapper.dart';
-import 'package:iquiz/features/quiz/repositories/mappers/quiz_mapper.dart';
-import 'package:iquiz/features/quiz/repositories/mappers/quiz_submission_mapper.dart';
-import 'package:iquiz/features/quiz/repositories/mappers/quiz_summary_mapper.dart';
-import 'package:iquiz/features/quiz/repositories/quiz_repository.dart';
+import 'package:iquiz/features/quiz/repositories/entities/quiz_submission_entity.dart';
+import 'package:iquiz/features/quiz/repositories/entities/quiz_summary_entity.dart';
 import 'package:iquiz/features/quiz/repositories/entities/study_material_entity.dart';
-import 'package:iquiz/features/quiz/repositories/entities/material_concept_entity.dart';
-import 'package:iquiz/features/quiz/repositories/mappers/material_mapper.dart';
+import 'package:iquiz/features/quiz/repositories/entities/wrong_answer_entity.dart';
+import 'package:iquiz/features/quiz/repositories/enums/quiz_generation_status.enum.dart';
+import 'package:iquiz/features/quiz/repositories/quiz_repository.dart';
 
 final class QuizRepositoryImpl implements QuizRepository {
   const QuizRepositoryImpl(this._quizRemoteDataSource);
@@ -31,7 +27,7 @@ final class QuizRepositoryImpl implements QuizRepository {
     try {
       final response = await _quizRemoteDataSource.getMyWrongAnswers();
       return Result.success(
-        List.unmodifiable(response.map((model) => model.toEntity())),
+        List.unmodifiable(response.map(WrongAnswerEntity.fromModel)),
       );
     } on Exception catch (error) {
       return Result.failure(mapApiError(error));
@@ -45,10 +41,10 @@ final class QuizRepositoryImpl implements QuizRepository {
     try {
       final response = await _quizRemoteDataSource.submitWrongAnswerReview(
         request: QuizSubmitModel(
-          answers: answers.map((answer) => answer.toRequest()).toList(),
+          answers: answers.map(QuizAnswerModel.fromEntity).toList(),
         ),
       );
-      final submission = response.toEntity();
+      final submission = QuizSubmissionEntity.fromModel(response);
       final questionIds = answers.map((answer) => answer.questionId).toSet();
       if (submission.totalCount != questionIds.length ||
           submission.results.any(
@@ -71,7 +67,7 @@ final class QuizRepositoryImpl implements QuizRepository {
         materialId: materialId,
       );
       return Result.success(
-        List.unmodifiable(response.map((quiz) => quiz.toEntity())),
+        List.unmodifiable(response.map(QuizSummaryEntity.fromModel)),
       );
     } on Exception catch (error) {
       return Result.failure(mapApiError(error));
@@ -83,7 +79,7 @@ final class QuizRepositoryImpl implements QuizRepository {
     try {
       final response = await _quizRemoteDataSource.getMyMaterials();
       return Result.success(
-        List.unmodifiable(response.map((model) => model.toEntity())),
+        List.unmodifiable(response.map(StudyMaterialEntity.fromModel)),
       );
     } on Exception catch (error) {
       return Result.failure(mapApiError(error));
@@ -98,7 +94,7 @@ final class QuizRepositoryImpl implements QuizRepository {
       final response = await _quizRemoteDataSource.getMyMaterial(
         materialId: materialId,
       );
-      return Result.success(response.toEntity());
+      return Result.success(StudyMaterialEntity.fromModel(response));
     } on Exception catch (error) {
       return Result.failure(mapApiError(error));
     }
@@ -113,7 +109,7 @@ final class QuizRepositoryImpl implements QuizRepository {
         materialId: materialId,
       );
       return Result.success(
-        List.unmodifiable(response.map((model) => model.toEntity())),
+        List.unmodifiable(response.map(MaterialConceptEntity.fromModel)),
       );
     } on Exception catch (error) {
       return Result.failure(mapApiError(error));
@@ -129,7 +125,7 @@ final class QuizRepositoryImpl implements QuizRepository {
       final response = await _quizRemoteDataSource
           .requestWeaknessQuizGeneration(
             conceptId: conceptId,
-            options: options.toRequest(),
+            options: QuizGenerationOptionsModel.fromEntity(options),
           );
       if (response.jobId <= 0) {
         throw const FormatException('생성 작업의 jobId가 올바르지 않습니다.');
@@ -149,10 +145,10 @@ final class QuizRepositoryImpl implements QuizRepository {
       final response = await _quizRemoteDataSource.submitQuiz(
         quizId: quizId,
         request: QuizSubmitModel(
-          answers: answers.map((answer) => answer.toRequest()).toList(),
+          answers: answers.map(QuizAnswerModel.fromEntity).toList(),
         ),
       );
-      return Result.success(response.toEntity());
+      return Result.success(QuizSubmissionEntity.fromModel(response));
     } on Exception catch (error) {
       return Result.failure(mapApiError(error));
     }
@@ -162,7 +158,7 @@ final class QuizRepositoryImpl implements QuizRepository {
   Future<Result<QuizEntity>> getQuiz({required int quizId}) async {
     try {
       final response = await _quizRemoteDataSource.getQuiz(quizId: quizId);
-      return Result.success(response.toEntity());
+      return Result.success(QuizEntity.fromModel(response));
     } on Exception catch (error) {
       return Result.failure(mapApiError(error));
     }
@@ -176,7 +172,7 @@ final class QuizRepositoryImpl implements QuizRepository {
     try {
       final response = await _quizRemoteDataSource.getJobIdByOptions(
         materialId: materialId,
-        options: options.toRequest(),
+        options: QuizGenerationOptionsModel.fromEntity(options),
       );
       if (response.jobId <= 0) {
         throw const FormatException('생성 작업의 jobId가 올바르지 않습니다.');
@@ -206,7 +202,7 @@ final class QuizRepositoryImpl implements QuizRepository {
 
       final jobId = await _quizRemoteDataSource.getJobIdByOptions(
         materialId: materialId.materialId,
-        options: options.toRequest(),
+        options: QuizGenerationOptionsModel.fromEntity(options),
       );
 
       return Result.success(jobId.jobId);
@@ -226,7 +222,7 @@ final class QuizRepositoryImpl implements QuizRepository {
         if (response.jobId != jobId) {
           throw const FormatException('작업 상태 응답의 jobId가 일치하지 않습니다.');
         }
-        final job = response.toEntity();
+        final job = QuizGenerationJobEntity.fromModel(response);
         yield Result.success(job);
         if (job.status == QuizGenerationStatus.done ||
             job.status == QuizGenerationStatus.failed) {

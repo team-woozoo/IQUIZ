@@ -4,7 +4,6 @@ import 'package:iquiz/features/learning_profile/data_source/remote/learning_prof
 import 'package:iquiz/features/learning_profile/repositories/entities/cognitive_type_score_entity.dart';
 import 'package:iquiz/features/learning_profile/repositories/entities/weak_concept_entity.dart';
 import 'package:iquiz/features/learning_profile/repositories/learning_profile_repository.dart';
-import 'package:iquiz/features/learning_profile/repositories/mappers/learning_profile_mapper.dart';
 
 final class LearningProfileRepositoryImpl implements LearningProfileRepository {
   const LearningProfileRepositoryImpl(this._remote);
@@ -16,7 +15,7 @@ final class LearningProfileRepositoryImpl implements LearningProfileRepository {
     try {
       final response = await _remote.getMyWeakConcepts();
       return Result.success(
-        List.unmodifiable(response.map((model) => model.toEntity())),
+        List.unmodifiable(response.map(WeakConceptEntity.fromModel)),
       );
     } on Exception catch (error) {
       return Result.failure(mapApiError(error));
@@ -29,7 +28,7 @@ final class LearningProfileRepositoryImpl implements LearningProfileRepository {
     try {
       final response = await _remote.getMyCognitiveTypeScores();
       return Result.success(
-        List.unmodifiable(response.map((model) => model.toEntity())),
+        List.unmodifiable(response.map(CognitiveTypeScoreEntity.fromModel)),
       );
     } on Exception catch (error) {
       return Result.failure(mapApiError(error));

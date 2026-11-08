@@ -5,7 +5,7 @@ part 'sign_up_result_model.g.dart';
 ///
 /// 회원가입 결과
 ///
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class SignUpResultModel {
   const SignUpResultModel({required this.id});
 

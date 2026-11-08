@@ -33,7 +33,7 @@ Map<String, dynamic> _$QuizSummaryModelToJson(QuizSummaryModel instance) =>
       'questionCount': instance.questionCount,
       'createdAt': instance.createdAt.toIso8601String(),
       'submissionCount': instance.submissionCount,
-      'lastSubmission': instance.lastSubmission,
+      'lastSubmission': instance.lastSubmission?.toJson(),
     };
 
 const _$QuizSummaryFormatEnumMap = {

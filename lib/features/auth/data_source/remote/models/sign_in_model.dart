@@ -5,7 +5,7 @@ part 'sign_in_model.g.dart';
 ///
 /// 로그인 요청 정보
 ///
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class SignInModel {
   const SignInModel({required this.email, required this.password});
 

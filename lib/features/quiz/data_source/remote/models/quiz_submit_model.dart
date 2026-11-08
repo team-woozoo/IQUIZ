@@ -7,7 +7,7 @@ part 'quiz_submit_model.g.dart';
 ///
 /// 퀴즈 답안 제출 요청
 ///
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class QuizSubmitModel {
   const QuizSubmitModel({required this.answers});
 

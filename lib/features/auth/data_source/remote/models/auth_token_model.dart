@@ -5,7 +5,7 @@ part 'auth_token_model.g.dart';
 ///
 /// 로그인·재발급 인증 토큰
 ///
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class AuthTokenModel {
   const AuthTokenModel({
     required this.accessToken,

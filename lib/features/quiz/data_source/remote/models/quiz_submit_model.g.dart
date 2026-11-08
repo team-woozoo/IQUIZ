@@ -14,4 +14,6 @@ QuizSubmitModel _$QuizSubmitModelFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$QuizSubmitModelToJson(QuizSubmitModel instance) =>
-    <String, dynamic>{'answers': instance.answers};
+    <String, dynamic>{
+      'answers': instance.answers.map((e) => e.toJson()).toList(),
+    };

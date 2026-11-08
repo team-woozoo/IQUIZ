@@ -7,7 +7,7 @@ part 'quiz_submit_result_model.g.dart';
 ///
 /// 퀴즈 제출 채점 결과
 ///
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class QuizSubmitResultModel {
   const QuizSubmitResultModel({
     required this.submissionId,

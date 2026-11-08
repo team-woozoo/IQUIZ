@@ -5,7 +5,6 @@ import 'package:iquiz/features/config/data_source/local/config_local_data_source
 import 'package:iquiz/features/config/data_source/remote/config_remote_data_source.dart';
 import 'package:iquiz/features/config/repositories/config_repository.dart';
 import 'package:iquiz/features/config/repositories/entities/config_entity.dart';
-import 'package:iquiz/features/config/repositories/mappers/config_mapper.dart';
 
 class ConfigRepositoryImpl implements ConfigRepository {
   ConfigRepositoryImpl({
@@ -23,7 +22,7 @@ class ConfigRepositoryImpl implements ConfigRepository {
         final localConfig = await localDataSource.getLocalConfig();
 
         return Result.success(
-          ConfigMapper.fromModels(local: localConfig, remote: remote),
+          ConfigEntity.fromModels(local: localConfig, remote: remote),
         );
       })
       .transform(
@@ -48,7 +47,7 @@ class ConfigRepositoryImpl implements ConfigRepository {
       final remote = await remoteDataSource.getRemoteConfig();
 
       return Result.success(
-        ConfigMapper.fromModels(local: local, remote: remote),
+        ConfigEntity.fromModels(local: local, remote: remote),
       );
     } on Exception catch (e) {
       return Result.failure(Exception(e));

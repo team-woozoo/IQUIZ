@@ -5,7 +5,7 @@ part 'user_model.g.dart';
 ///
 /// 유저 정보
 ///
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class UserModel {
   const UserModel({
     required this.id,

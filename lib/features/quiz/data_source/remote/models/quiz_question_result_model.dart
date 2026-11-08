@@ -5,7 +5,7 @@ part 'quiz_question_result_model.g.dart';
 ///
 /// 문제별 채점 결과
 ///
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class QuizQuestionResultModel {
   const QuizQuestionResultModel({
     required this.questionId,

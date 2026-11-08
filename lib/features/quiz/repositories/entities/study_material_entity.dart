@@ -1,3 +1,5 @@
+import 'package:iquiz/features/quiz/data_source/remote/models/study_material_model.dart';
+
 /// 자료 전체 문제 기준의 학습 집계. 오답 수에는 미풀이도 포함
 final class StudyMaterialEntity {
   const StudyMaterialEntity({
@@ -14,6 +16,33 @@ final class StudyMaterialEntity {
     required this.generating,
   });
 
+  factory StudyMaterialEntity.fromModel(StudyMaterialModel model) {
+    _validateStatistics(
+      model.questionCount,
+      model.answeredCount,
+      model.correctCount,
+      model.accuracy,
+    );
+    if (model.materialId <= 0 ||
+        model.pageCount < 0 ||
+        model.wrongCount != model.questionCount - model.correctCount) {
+      throw const FormatException('자료 정보 또는 오답 집계가 올바르지 않습니다.');
+    }
+    return StudyMaterialEntity(
+      materialId: model.materialId,
+      title: model.title,
+      originalFilename: model.originalFilename,
+      pageCount: model.pageCount,
+      createdAt: model.createdAt,
+      questionCount: model.questionCount,
+      answeredCount: model.answeredCount,
+      correctCount: model.correctCount,
+      wrongCount: model.wrongCount,
+      accuracy: model.accuracy,
+      generating: model.generating,
+    );
+  }
+
   final int materialId;
   final String title;
   final String originalFilename;
@@ -27,4 +56,22 @@ final class StudyMaterialEntity {
   final int wrongCount;
   final double? accuracy;
   final bool generating;
+}
+
+void _validateStatistics(
+  int questionCount,
+  int answeredCount,
+  int correctCount,
+  double? accuracy,
+) {
+  if (questionCount < 0 ||
+      answeredCount < 0 ||
+      answeredCount > questionCount ||
+      correctCount < 0 ||
+      correctCount > answeredCount ||
+      (questionCount == 0) != (accuracy == null) ||
+      (accuracy != null &&
+          (!accuracy.isFinite || accuracy < 0 || accuracy > 1))) {
+    throw const FormatException('자료 학습 집계가 올바르지 않습니다.');
+  }
 }

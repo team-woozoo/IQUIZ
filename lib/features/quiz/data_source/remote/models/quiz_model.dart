@@ -10,7 +10,7 @@ part 'quiz_model.g.dart';
 ///
 /// 퀴즈 상세 정보
 ///
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class QuizModel {
   const QuizModel({
     required this.quizId,

@@ -5,7 +5,7 @@ part 'quiz_generation_task_model.g.dart';
 ///
 /// 퀴즈 생성 요청 접수 결과
 ///
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class QuizGenerationTaskModel {
   const QuizGenerationTaskModel({required this.jobId});
 

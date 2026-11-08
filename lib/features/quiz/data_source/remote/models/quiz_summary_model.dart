@@ -10,7 +10,7 @@ part 'quiz_summary_model.g.dart';
 ///
 /// 내 퀴즈 목록 요약 정보
 ///
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class QuizSummaryModel {
   const QuizSummaryModel({
     required this.quizId,

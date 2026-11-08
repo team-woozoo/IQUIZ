@@ -7,7 +7,7 @@ part 'material_concept_model.g.dart';
 ///
 /// 자료의 개념별 학습 상태
 ///
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class MaterialConceptModel {
   const MaterialConceptModel({
     required this.conceptId,

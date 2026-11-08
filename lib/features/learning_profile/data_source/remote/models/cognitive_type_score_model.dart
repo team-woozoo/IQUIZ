@@ -7,7 +7,7 @@ part 'cognitive_type_score_model.g.dart';
 ///
 /// 인지 유형별 정답률과 데이터 충분성
 ///
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class CognitiveTypeScoreModel {
   const CognitiveTypeScoreModel({
     required this.cognitiveType,

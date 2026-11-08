@@ -33,7 +33,7 @@ Map<String, dynamic> _$QuizQuestionModelToJson(QuizQuestionModel instance) =>
       'explanation': instance.explanation,
       'sourceQuote': instance.sourceQuote,
       'sourcePageNo': instance.sourcePageNo,
-      'options': instance.options,
+      'options': instance.options.map((e) => e.toJson()).toList(),
     };
 
 const _$QuestionCognitiveTypeEnumMap = {

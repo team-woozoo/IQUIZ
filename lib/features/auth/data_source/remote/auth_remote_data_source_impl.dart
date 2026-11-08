@@ -2,8 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:iquiz/app/network/app_dio.dart';
 import 'package:iquiz/core/helper/future_extension.dart';
 import 'package:iquiz/features/auth/data_source/remote/auth_remote_data_source.dart';
-import 'package:iquiz/features/auth/data_source/remote/models/user_model.dart';
-import 'package:iquiz/features/auth/repositories/entities/jwt_entity.dart';
+import 'package:iquiz/features/auth/data_source/remote/models/models.dart';
 
 final class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   const AuthRemoteDataSourceImpl();
@@ -11,45 +10,30 @@ final class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Dio get _dio => AppDio.instance;
 
   @override
-  Future<JwtEntity> signIn({required String email, required String password}) =>
-      _dio
-          .post<Map<String, dynamic>>(
-            '/auth/login',
-            data: {'email': email, 'password': password},
-          )
-          .withSingleConverter(fromJson: JwtEntity.fromResponse);
+  Future<AuthTokenModel> signIn(SignInModel request) => _dio
+      .post<Map<String, dynamic>>('/auth/login', data: request.toJson())
+      .withSingleConverter(fromJson: _tokensFromJson);
 
   @override
-  Future<int> signUp({
-    required String email,
-    required String password,
-    required String nickname,
-  }) => _dio
-      .post<Map<String, dynamic>>(
-        '/auth/signup',
-        data: {'email': email, 'password': password, 'nickname': nickname},
-      )
+  Future<SignUpResultModel> signUp(SignUpModel request) => _dio
+      .post<Map<String, dynamic>>('/auth/signup', data: request.toJson())
       .withSingleConverter(
         fromJson: (json) {
-          final dynamic id = json['id'];
-          if (id is! int) {
+          if (json['id'] is! int) {
             throw const FormatException('회원가입 응답이 올바르지 않습니다.');
           }
-          return id;
+          return SignUpResultModel.fromJson(json);
         },
       );
 
   @override
-  Future<JwtEntity> refresh(String refreshToken) => _dio
-      .post<Map<String, dynamic>>(
-        '/auth/refresh',
-        data: {'refreshToken': refreshToken},
-      )
-      .withSingleConverter(fromJson: JwtEntity.fromResponse);
+  Future<AuthTokenModel> refresh(TokenRefreshModel request) => _dio
+      .post<Map<String, dynamic>>('/auth/refresh', data: request.toJson())
+      .withSingleConverter(fromJson: _tokensFromJson);
 
   @override
-  Future<void> signOut(String refreshToken) async {
-    await _dio.post('/auth/logout', data: {'refreshToken': refreshToken});
+  Future<void> signOut(TokenRefreshModel request) async {
+    await _dio.post('/auth/logout', data: request.toJson());
   }
 
   @override
@@ -65,4 +49,13 @@ final class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           return UserModel.fromJson(json);
         },
       );
+
+  static AuthTokenModel _tokensFromJson(Map<String, dynamic> json) {
+    if (json['accessToken'] is! String ||
+        json['refreshToken'] is! String ||
+        json['expiresIn'] is! int) {
+      throw const FormatException('올바르지 않은 인증 응답입니다.');
+    }
+    return AuthTokenModel.fromJson(json);
+  }
 }

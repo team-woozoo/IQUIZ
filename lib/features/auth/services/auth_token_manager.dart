@@ -6,6 +6,7 @@ import 'package:iquiz/core/auth/auth_session.dart';
 import 'package:iquiz/core/exception/custom_exception.dart';
 import 'package:iquiz/features/auth/data_source/local/auth_local_data_source.dart';
 import 'package:iquiz/features/auth/data_source/remote/auth_remote_data_source.dart';
+import 'package:iquiz/features/auth/data_source/remote/models/token_refresh_model.dart';
 import 'package:iquiz/features/auth/repositories/entities/jwt_entity.dart';
 
 /// 토큰 교체/삭제를 직렬화하고 회전하는 Refresh 토큰의 중복 사용을 방지
@@ -82,7 +83,9 @@ final class AuthTokenManager extends ChangeNotifier implements AuthSession {
 
   Future<JwtEntity> _refresh(JwtEntity previous, int version) async {
     try {
-      final tokens = await remote.refresh(previous.refreshToken);
+      final tokens = JwtEntity.fromModel(
+        await remote.refresh(TokenRefreshModel.fromEntity(previous)),
+      );
       try {
         await _storage(() async {
           if (version == _generation && !_disposed) await local.write(tokens);
@@ -125,7 +128,9 @@ final class AuthTokenManager extends ChangeNotifier implements AuthSession {
           // 재발급이 실패해도 기존 토큰으로 서버 로그아웃은 시도
         }
       }
-      if (tokens != null) await remote.signOut(tokens.refreshToken);
+      if (tokens != null) {
+        await remote.signOut(TokenRefreshModel.fromEntity(tokens));
+      }
     } on Exception {
       // 서버 응답과 관계없이 로컬 로그아웃을 완료
     } finally {

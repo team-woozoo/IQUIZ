@@ -254,6 +254,19 @@ final class ModelGenerationPlan {
       );
       final registration =
           registrations[originalNames[file.name]] as Map<String, dynamic>;
+      // 요청·응답 모두 같은 클래스에서 JSON을 읽고 쓰며 중첩 모델도 Map으로 직렬화
+      rewritten = rewritten.replaceAll(
+        '@JsonSerializable()',
+        '@JsonSerializable(explicitToJson: true)',
+      );
+      final Object? entity = registration['entity'];
+      if (entity != null) {
+        rewritten = _withEntityFactory(
+          rewritten,
+          renamed(typesByName[originalNames[file.name]]!),
+          entity,
+        );
+      }
       final description =
           registration['description'] as String? ??
           '${typeNames[originalNames[file.name]] ?? originalNames[file.name]} API 데이터 타입.';
@@ -307,6 +320,50 @@ final class ModelGenerationPlan {
     if (declaration == null) return '/// $summary\nlibrary;\n\n$body\n';
     return '${body.substring(0, declaration.start)}///\n/// $summary\n///\n'
         '${body.substring(declaration.start)}\n';
+  }
+
+  /// Swagger 재생성 시에도 Model.fromEntity 변환을 함께 생성
+  static String _withEntityFactory(
+    String source,
+    UniversalDataClass model,
+    Object entity,
+  ) {
+    if (model is! UniversalComponentClass ||
+        entity is! Map<String, dynamic> ||
+        entity['typeName'] is! String ||
+        !RegExp(r'^[A-Z][a-zA-Z0-9]*Entity$')
+            .hasMatch(entity['typeName'] as String) ||
+        entity['import'] is! String ||
+        !RegExp(
+          r'^package:iquiz/features/[a-z0-9_]+/repositories/entities/[a-z0-9_]+\.dart$',
+        ).hasMatch(entity['import'] as String)) {
+      throw FormatException(
+        '${model.name}: entity에 typeName과 Entity import를 지정하세요.',
+      );
+    }
+    final overrides = entity['fields'] ?? <String, dynamic>{};
+    final fields = model.parameters.map((field) => field.name).toSet();
+    if (overrides is! Map<String, dynamic> ||
+        overrides.keys.any((field) => !fields.contains(field)) ||
+        overrides.values.any(
+          (value) => value is! String || value.trim().isEmpty,
+        )) {
+      throw FormatException(
+        '${model.name}: entity.fields에는 존재하는 필드와 Dart 변환식을 지정하세요.',
+      );
+    }
+    final arguments = fields
+        .map((field) => '$field: ${overrides[field] ?? 'entity.$field'},')
+        .join('\n');
+    final factory =
+        '''
+  factory ${model.name}.fromEntity(${entity['typeName']} entity) => ${model.name}(
+    $arguments
+  );
+''';
+    final jsonFactory = source.indexOf('  factory ${model.name}.fromJson(');
+    final insertion = jsonFactory < 0 ? source.lastIndexOf('}') : jsonFactory;
+    return "import '${entity['import']}';\n${source.replaceRange(insertion, insertion, '$factory\n')}";
   }
 
   static bool _isEmpty(UniversalDataClass model) =>

@@ -21,7 +21,7 @@ Map<String, dynamic> _$QuizModelToJson(QuizModel instance) => <String, dynamic>{
   'materialId': instance.materialId,
   'format': _$QuizFormatTypeEnumMap[instance.format]!,
   'difficulty': _$QuizDifficultyLevelEnumMap[instance.difficulty]!,
-  'questions': instance.questions,
+  'questions': instance.questions.map((e) => e.toJson()).toList(),
 };
 
 const _$QuizFormatTypeEnumMap = {
