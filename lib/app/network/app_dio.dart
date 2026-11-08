@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:iquiz/app/network/auth_interceptor.dart';
 import 'package:iquiz/core/auth/auth_session.dart';
 
@@ -16,6 +15,7 @@ class AppDio with DioMixin implements Dio {
   }
 
   /// 객체 연결은 앱 초기화 계층에서 수행하고 요청 중에는 설정을 조회하지 않음
+  /// 개발용 HTTP 허용 여부는 빌드 모드가 아닌 호출한 환경의 정책으로 결정
   static void initialize({
     required String baseUrl,
     required AuthSession session,
@@ -30,7 +30,7 @@ class AppDio with DioMixin implements Dio {
         uri.hasQuery ||
         uri.hasFragment ||
         (uri.scheme != 'https' &&
-            !(allowInsecureHttp && kDebugMode && uri.scheme == 'http'))) {
+            !(allowInsecureHttp && uri.scheme == 'http'))) {
       throw const FormatException('서버 주소는 사용자 정보·쿼리·프래그먼트가 없는 HTTPS 주소여야 합니다.');
     }
 

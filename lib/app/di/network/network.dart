@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:iquiz/app/di/auth/auth.dart';
 import 'package:iquiz/app/environment/environment.dart';
@@ -10,6 +9,6 @@ final initializeNetworkProvider = Provider.family<void, String>((ref, baseUrl) {
   AppDio.initialize(
     baseUrl: baseUrl,
     session: ref.watch(authTokenManagerProvider),
-    allowInsecureHttp: kDebugMode && Flavor.instance.env == Environment.dev,
+    allowInsecureHttp: Flavor.instance.env == Environment.dev,
   );
 });
