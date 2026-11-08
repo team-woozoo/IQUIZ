@@ -7,9 +7,9 @@ import 'package:iquiz/features/quiz/repositories/entities/quiz_submission_entity
 import 'package:iquiz/presentation/pages/home/providers/my_quizzes_provider.dart';
 import 'package:iquiz/presentation/pages/home/providers/my_weak_concepts_provider.dart';
 import 'package:iquiz/presentation/pages/profile/providers/my_cognitive_type_scores_provider.dart';
-import 'package:iquiz/presentation/providers/material/material_providers.dart';
-import 'package:iquiz/presentation/pages/wrong_answers/providers/my_wrong_answers_provider.dart';
 import 'package:iquiz/presentation/pages/quiz/quiz_play/providers/quiz_route_arg.dart';
+import 'package:iquiz/presentation/pages/wrong_answers/providers/my_wrong_answers_provider.dart';
+import 'package:iquiz/presentation/providers/material/material_providers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'quiz_submit_provider.g.dart';
@@ -43,17 +43,10 @@ class QuizSubmit extends _$QuizSubmit {
         answers: answers,
       );
       if (!ref.mounted) return null;
-      final submission = result.fold(
-        onSuccess: (value) => value,
-        onFailure: (error) => throw error,
-      );
-      final questionIds = quiz.questions
-          .map((question) => question.questionId)
-          .toSet();
-      if (submission.totalCount != questionIds.length ||
-          submission.results.any(
-            (result) => !questionIds.contains(result.questionId),
-          )) {
+      final submission = result.getOrThrow();
+      if (!submission.matchesQuestions(
+        quiz.questions.map((question) => question.questionId),
+      )) {
         throw const FormatException('채점 결과의 문제 정보가 일치하지 않습니다.');
       }
       ref.invalidate(myQuizzesProvider);

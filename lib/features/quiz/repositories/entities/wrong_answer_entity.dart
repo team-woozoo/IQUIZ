@@ -27,16 +27,18 @@ final class WrongAnswerEntity {
   factory WrongAnswerEntity.fromModel(WrongAnswerModel model) {
     final orderedOptions = [...model.options]
       ..sort((a, b) => a.orderNo.compareTo(b.orderNo));
-    if (model.questionId <= 0 ||
-        model.quizId <= 0 ||
-        model.materialId <= 0 ||
-        model.wrongCount < 0 ||
-        (model.sourcePageNo != null && model.sourcePageNo! <= 0) ||
-        orderedOptions.isEmpty ||
-        orderedOptions.any((option) => option.optionId <= 0) ||
-        !orderedOptions.any((option) => option.isCorrect) ||
-        orderedOptions.map((option) => option.optionId).toSet().length !=
-            orderedOptions.length) {
+    final validIds =
+        model.questionId > 0 && model.quizId > 0 && model.materialId > 0;
+    final validHistory =
+        model.wrongCount >= 0 &&
+        (model.sourcePageNo == null || model.sourcePageNo! > 0);
+    final validOptions =
+        orderedOptions.every((option) => option.optionId > 0) &&
+        orderedOptions.any((option) => option.isCorrect) &&
+        orderedOptions.map((option) => option.optionId).toSet().length ==
+            orderedOptions.length;
+
+    if (!validIds || !validHistory || !validOptions) {
       throw const FormatException('오답 문제 또는 보기 정보가 올바르지 않습니다.');
     }
     return WrongAnswerEntity(

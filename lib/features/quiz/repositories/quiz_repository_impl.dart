@@ -14,7 +14,6 @@ import 'package:iquiz/features/quiz/repositories/entities/quiz_submission_entity
 import 'package:iquiz/features/quiz/repositories/entities/quiz_summary_entity.dart';
 import 'package:iquiz/features/quiz/repositories/entities/study_material_entity.dart';
 import 'package:iquiz/features/quiz/repositories/entities/wrong_answer_entity.dart';
-import 'package:iquiz/features/quiz/repositories/enums/quiz_generation_status.enum.dart';
 import 'package:iquiz/features/quiz/repositories/quiz_repository.dart';
 
 final class QuizRepositoryImpl implements QuizRepository {
@@ -45,11 +44,9 @@ final class QuizRepositoryImpl implements QuizRepository {
         ),
       );
       final submission = QuizSubmissionEntity.fromModel(response);
-      final questionIds = answers.map((answer) => answer.questionId).toSet();
-      if (submission.totalCount != questionIds.length ||
-          submission.results.any(
-            (result) => !questionIds.contains(result.questionId),
-          )) {
+      if (!submission.matchesQuestions(
+        answers.map((answer) => answer.questionId),
+      )) {
         throw const FormatException('복습 채점 결과의 문제가 제출한 답안과 일치하지 않습니다.');
       }
       return Result.success(submission);
@@ -224,8 +221,7 @@ final class QuizRepositoryImpl implements QuizRepository {
         }
         final job = QuizGenerationJobEntity.fromModel(response);
         yield Result.success(job);
-        if (job.status == QuizGenerationStatus.done ||
-            job.status == QuizGenerationStatus.failed) {
+        if (job.status.isFinished) {
           return;
         }
       }

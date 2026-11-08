@@ -52,10 +52,5 @@ final class QuizGenerationState {
     QuizGenerationStatus.failed => 'PDF 다시 선택하기',
   };
 
-  bool get isBusy => switch (status) {
-    QuizGenerationStatus.uploading ||
-    QuizGenerationStatus.pending ||
-    QuizGenerationStatus.processing => true,
-    _ => false,
-  };
+  bool get isBusy => status.isBusy;
 }

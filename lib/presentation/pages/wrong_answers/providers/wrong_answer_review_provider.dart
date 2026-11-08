@@ -51,13 +51,8 @@ class WrongAnswerReview extends _$WrongAnswerReview {
       if (!ref.mounted || ref.read(userAuthProvider).user?.id != userId) {
         return null;
       }
-      final submission = result.fold(
-        onSuccess: (value) => value,
-        onFailure: (error) => throw error,
-      );
-      if (submission.totalCount != 1 ||
-          submission.results.length != 1 ||
-          submission.results.single.questionId != questionId) {
+      final submission = result.getOrThrow();
+      if (!submission.matchesQuestions([questionId])) {
         throw const FormatException('복습 채점 결과의 문제가 일치하지 않습니다.');
       }
       ref.invalidate(myWeakConceptsProvider);

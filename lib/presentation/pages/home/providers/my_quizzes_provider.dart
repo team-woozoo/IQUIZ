@@ -18,8 +18,5 @@ Future<List<QuizSummaryEntity>> myQuizzes(Ref ref) async {
   if (userId == null) return const [];
 
   final result = await ref.watch(getMyQuizzesUseCaseProvider)();
-  return result.fold(
-    onSuccess: (quizzes) => quizzes,
-    onFailure: (error) => throw error,
-  );
+  return result.getOrThrow();
 }

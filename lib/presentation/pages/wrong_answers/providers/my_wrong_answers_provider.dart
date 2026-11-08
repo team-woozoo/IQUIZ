@@ -17,8 +17,5 @@ Future<List<WrongAnswerEntity>> myWrongAnswers(Ref ref) async {
   );
   if (userId == null) return const [];
   final result = await ref.watch(getMyWrongAnswersUseCaseProvider)();
-  return result.fold(
-    onSuccess: (items) => items,
-    onFailure: (error) => throw error,
-  );
+  return result.getOrThrow();
 }

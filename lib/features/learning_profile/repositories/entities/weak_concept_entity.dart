@@ -1,3 +1,4 @@
+import 'package:iquiz/core/validation/learning_statistics_validator.dart';
 import 'package:iquiz/features/learning_profile/data_source/remote/models/weak_concept_model.dart';
 
 final class WeakConceptEntity {
@@ -12,10 +13,10 @@ final class WeakConceptEntity {
   });
 
   factory WeakConceptEntity.fromModel(WeakConceptModel model) {
-    _validateScore(
-      model.answeredCount,
-      model.correctAnswerCount,
-      model.accuracy,
+    LearningStatisticsValidator.validateAnswers(
+      answeredCount: model.answeredCount,
+      correctCount: model.correctAnswerCount,
+      accuracy: model.accuracy,
     );
     if (model.answeredCount == 0) {
       throw const FormatException('취약 개념의 풀이 수가 올바르지 않습니다.');
@@ -44,18 +45,4 @@ final class WeakConceptEntity {
 
   /// 0~1 범위의 정답률
   final double accuracy;
-}
-
-void _validateScore(
-  int answeredCount,
-  int correctAnswerCount,
-  double? accuracy,
-) {
-  if (answeredCount < 0 ||
-      correctAnswerCount < 0 ||
-      correctAnswerCount > answeredCount ||
-      (accuracy != null &&
-          (!accuracy.isFinite || accuracy < 0 || accuracy > 1))) {
-    throw const FormatException('학습 분석 집계가 올바르지 않습니다.');
-  }
 }

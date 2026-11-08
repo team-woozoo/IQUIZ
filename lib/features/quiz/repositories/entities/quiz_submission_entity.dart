@@ -10,16 +10,22 @@ final class QuizSubmissionEntity {
   });
 
   factory QuizSubmissionEntity.fromModel(QuizSubmitResultModel model) {
-    if (model.submissionId <= 0 ||
-        model.totalCount <= 0 ||
-        model.correctCount < 0 ||
-        model.correctCount > model.totalCount ||
-        model.results.length != model.totalCount ||
-        model.results.any((result) => result.questionId <= 0) ||
-        model.results.map((result) => result.questionId).toSet().length !=
-            model.totalCount ||
-        model.results.where((result) => result.correct).length !=
-            model.correctCount) {
+    final validTotals =
+        model.submissionId > 0 &&
+        model.totalCount > 0 &&
+        model.correctCount >= 0 &&
+        model.correctCount <= model.totalCount;
+    final questionIds = model.results
+        .map((result) => result.questionId)
+        .toList();
+    final validResults =
+        questionIds.length == model.totalCount &&
+        questionIds.every((id) => id > 0) &&
+        questionIds.toSet().length == model.totalCount &&
+        model.results.where((result) => result.correct).length ==
+            model.correctCount;
+
+    if (!validTotals || !validResults) {
       throw const FormatException('서버 채점 결과가 올바르지 않습니다.');
     }
     return QuizSubmissionEntity(
@@ -36,6 +42,16 @@ final class QuizSubmissionEntity {
   final int correctCount;
   final int totalCount;
   final List<QuizQuestionResultEntity> results;
+
+  /// 응답 순서와 관계없이 요청한 문제들이 채점됐는지 확인
+  bool matchesQuestions(Iterable<int> questionIds) {
+    final expectedIds = questionIds.toSet();
+    return totalCount == expectedIds.length &&
+        results.length == expectedIds.length &&
+        results.every((result) => expectedIds.contains(result.questionId)) &&
+        results.map((result) => result.questionId).toSet().length ==
+            expectedIds.length;
+  }
 
   int get correctRate =>
       totalCount == 0 ? 0 : (correctCount / totalCount * 100).round();

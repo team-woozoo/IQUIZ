@@ -94,7 +94,7 @@ class _MaterialConceptTile extends StatelessWidget with MaterialDetailState {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  pageLabel(concept.pageNos),
+                  concept.pageNos.pdfPageLabel,
                   style: AppTextStyle.reqular(
                     14,
                     19.6,

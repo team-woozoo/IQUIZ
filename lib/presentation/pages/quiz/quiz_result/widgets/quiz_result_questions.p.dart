@@ -38,7 +38,7 @@ class _QuizResultQuestions extends StatelessWidget with QuizResultState {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      pagesLabel(concept.pages),
+                      concept.pages.pdfPageLabel,
                       style: AppTextStyle.reqular(
                         14,
                         19.6,

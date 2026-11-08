@@ -18,8 +18,5 @@ Future<List<WeakConceptEntity>> myWeakConcepts(Ref ref) async {
   if (userId == null) return const [];
 
   final result = await ref.watch(getMyWeakConceptsUseCaseProvider)();
-  return result.fold(
-    onSuccess: (concepts) => concepts,
-    onFailure: (error) => throw error,
-  );
+  return result.getOrThrow();
 }

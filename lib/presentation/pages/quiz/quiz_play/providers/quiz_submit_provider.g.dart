@@ -37,7 +37,7 @@ final class QuizSubmitProvider
   QuizSubmit create() => QuizSubmit();
 }
 
-String _$quizSubmitHash() => r'2a446dc817dc2e4d4e4e62682708f230328b9166';
+String _$quizSubmitHash() => r'231226258a7c0d3c6261ad00e3309b4e53686011';
 
 abstract class _$QuizSubmit extends $AsyncNotifier<QuizSubmissionEntity?> {
   FutureOr<QuizSubmissionEntity?> build();

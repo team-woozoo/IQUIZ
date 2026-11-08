@@ -49,4 +49,4 @@ final class QuizDetailProvider
   }
 }
 
-String _$quizDetailHash() => r'e543a6f8db75472fef5defacf8fbc965af8fc22a';
+String _$quizDetailHash() => r'683aef402fd5bbea50283a56a851fa70f71d1b2f';

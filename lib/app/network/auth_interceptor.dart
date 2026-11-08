@@ -23,12 +23,7 @@ final class AuthInterceptor extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    final base = Uri.parse(dio.options.baseUrl);
-    final target = options.uri;
-    if (target.scheme != base.scheme ||
-        target.host != base.host ||
-        target.port != base.port ||
-        target.userInfo.isNotEmpty) {
+    if (!_isSameOrigin(options.uri)) {
       handler.reject(
         DioException(
           requestOptions: options,
@@ -45,8 +40,7 @@ final class AuthInterceptor extends Interceptor {
     }
     final token = tokens.accessToken;
     final isOldRetry =
-        options.extra[_retried] == true &&
-        options.extra[_generation] != tokens.generation;
+        options.extra[_retried] == true && !_isCurrentSession(options);
     if (token == null || isOldRetry) {
       handler.reject(
         DioException(
@@ -69,14 +63,7 @@ final class AuthInterceptor extends Interceptor {
     final error = err;
     final request = error.requestOptions;
     // 같은 Dio로 재발급해도 인증 API의 실패는 다시 재발급하지 않음
-    if (_isPublicRequest(request)) {
-      handler.next(error);
-      return;
-    }
-    final data = await _errorData(error);
-    final dynamic code = data is Map<String, dynamic> ? data['code'] : null;
-    final sameSession = request.extra[_generation] == tokens.generation;
-    if (code != 'UNAUTHORIZED' || !sameSession || !tokens.hasTokens) {
+    if (_isPublicRequest(request) || !await _canRefresh(error)) {
       handler.next(error);
       return;
     }
@@ -100,7 +87,7 @@ final class AuthInterceptor extends Interceptor {
       if (failedAuthorization == 'Bearer ${tokens.accessToken}') {
         await tokens.refreshAccessToken();
       }
-      if (request.extra[_generation] != tokens.generation ||
+      if (!_isCurrentSession(request) ||
           request.cancelToken?.isCancelled == true) {
         handler.next(error);
         return;
@@ -120,6 +107,25 @@ final class AuthInterceptor extends Interceptor {
     } on Exception catch (failure) {
       handler.next(DioException(requestOptions: request, error: failure));
     }
+  }
+
+  bool _isSameOrigin(Uri target) {
+    final base = Uri.parse(dio.options.baseUrl);
+    return target.scheme == base.scheme &&
+        target.host == base.host &&
+        target.port == base.port &&
+        target.userInfo.isEmpty;
+  }
+
+  bool _isCurrentSession(RequestOptions request) =>
+      request.extra[_generation] == tokens.generation;
+
+  Future<bool> _canRefresh(DioException error) async {
+    final data = await _errorData(error);
+    return data is Map<String, dynamic> &&
+        data['code'] == 'UNAUTHORIZED' &&
+        _isCurrentSession(error.requestOptions) &&
+        tokens.hasTokens;
   }
 
   /// 스트리밍 요청의 HTTP 인증 오류 본문도 JSON으로 읽어 재발급 여부를 판단

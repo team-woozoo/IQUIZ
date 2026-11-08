@@ -49,4 +49,4 @@ final class MyCognitiveTypeScoresProvider
 }
 
 String _$myCognitiveTypeScoresHash() =>
-    r'46ee31e2580adcc934d310d2812389f6a02da69a';
+    r'f083400b12ef45f4f8dcd51dd64b4f3ad9b117a2';

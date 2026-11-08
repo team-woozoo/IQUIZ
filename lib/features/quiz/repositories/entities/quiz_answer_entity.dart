@@ -8,4 +8,11 @@ final class QuizAnswerEntity {
 
   final int questionId;
   final int optionId;
+
+  /// 유효한 문제와 보기로 구성된 중복 없는 답안 목록
+  static bool isValidSelection(List<QuizAnswerEntity> answers) =>
+      answers.isNotEmpty &&
+      answers.every((answer) => answer.questionId > 0 && answer.optionId > 0) &&
+      answers.map((answer) => answer.questionId).toSet().length ==
+          answers.length;
 }

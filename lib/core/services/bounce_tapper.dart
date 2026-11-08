@@ -92,30 +92,19 @@ class _BounceTapperState extends State<BounceTapper>
         return;
       }
 
-      if (object is RenderDecoratedBox) {
-        final decoration = object.decoration;
-        if (decoration is BoxDecoration && decoration.borderRadius != null) {
-          borderRadius = decoration.borderRadius;
-          return;
-        }
-      }
-
-      if (object is RenderClipRRect) {
-        borderRadius = object.borderRadius;
-        return;
-      }
-
-      if (object is RenderPhysicalShape) {
-        final clipper = object.clipper;
-        if (clipper is ShapeBorderClipper) {
-          final shape = clipper.shape;
-          if (shape is RoundedRectangleBorder) {
-            borderRadius = shape.borderRadius;
-            return;
-          }
-        }
-      }
-      object.visitChildren(visit);
+      borderRadius = switch (object) {
+        RenderDecoratedBox(decoration: BoxDecoration(:final borderRadius)) =>
+          borderRadius,
+        RenderClipRRect(:final borderRadius) => borderRadius,
+        RenderPhysicalShape(
+          clipper: ShapeBorderClipper(
+            shape: RoundedRectangleBorder(:final borderRadius),
+          ),
+        ) =>
+          borderRadius,
+        _ => null,
+      };
+      if (borderRadius == null) object.visitChildren(visit);
     }
 
     visit(renderObject);
@@ -177,13 +166,9 @@ class _BounceTapperState extends State<BounceTapper>
 
     // 애니메이션이 완전히 완료된 후 사용자 정의 콜백 실행
     if (_isLongPressed) {
-      if (widget.onLongPressUp != null) {
-        widget.onLongPressUp!();
-      }
+      widget.onLongPressUp?.call();
     } else {
-      if (widget.onTap != null) {
-        widget.onTap!();
-      }
+      widget.onTap?.call();
     }
     _isLongPressed = false; // 다음 상호작용을 위해 상태 초기화
   }

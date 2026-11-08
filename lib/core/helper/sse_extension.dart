@@ -92,27 +92,27 @@ extension DioSseExtension on Dio {
   }
 }
 
-bool _canReconnect(Object? error) {
-  if (error == null) return true;
-  if (error is FormatException) return false;
-  if (error is DioException) {
-    return switch (error.type) {
-      DioExceptionType.connectionError ||
-      DioExceptionType.connectionTimeout ||
-      DioExceptionType.sendTimeout ||
-      DioExceptionType.receiveTimeout => true,
-      DioExceptionType.badResponse => const {
-        500,
-        502,
-        503,
-        504,
-      }.contains(error.response?.statusCode),
-      _ => false,
-    };
-  }
+bool _canReconnect(Object? error) => switch (error) {
+  null => true,
+  FormatException() => false,
+  DioException(
+    type: DioExceptionType.connectionError ||
+        DioExceptionType.connectionTimeout ||
+        DioExceptionType.sendTimeout ||
+        DioExceptionType.receiveTimeout,
+  ) =>
+    true,
+  DioException(type: DioExceptionType.badResponse, :final response) => const {
+    500,
+    502,
+    503,
+    504,
+  }.contains(response?.statusCode),
+  DioException() => false,
   // 응답 본문의 소켓 오류는 DioException 래핑 없이 전달될 수도 있음
-  return error is Exception;
-}
+  Exception() => true,
+  _ => false,
+};
 
 extension SseJsonStreamExtension on Stream<List<int>> {
   /// UTF-8 및 줄 경계와 무관하게 data 필드를 모아 이벤트별로 디코딩

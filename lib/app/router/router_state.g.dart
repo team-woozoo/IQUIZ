@@ -41,7 +41,7 @@ final class RouterStateProvider
   }
 }
 
-String _$routerStateHash() => r'92dc64e4c780ea79445fede8b6d8d666c39ceb18';
+String _$routerStateHash() => r'850e8c5ad51e47d6d19f502ce1b87a4f9155368e';
 
 abstract class _$RouterState extends $Notifier<GoRouter> {
   GoRouter build();

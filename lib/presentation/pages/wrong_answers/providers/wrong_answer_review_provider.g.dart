@@ -50,7 +50,7 @@ final class WrongAnswerReviewProvider
   }
 }
 
-String _$wrongAnswerReviewHash() => r'9a2ee4456264e278f524f547d89aa23bdfedda2d';
+String _$wrongAnswerReviewHash() => r'6742a8839228ce81969a3446bd33f444e616d8bd';
 
 final class WrongAnswerReviewFamily extends $Family
     with

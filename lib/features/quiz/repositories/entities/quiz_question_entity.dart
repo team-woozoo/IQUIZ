@@ -18,10 +18,11 @@ final class QuizQuestionEntity {
   factory QuizQuestionEntity.fromModel(QuizQuestionModel model) {
     final options = [...model.options]
       ..sort((a, b) => a.orderNo.compareTo(b.orderNo));
-    if (options.isEmpty ||
-        !options.any((option) => option.isCorrect) ||
-        options.map((option) => option.optionId).toSet().length !=
-            options.length) {
+    final hasCorrectAnswer = options.any((option) => option.isCorrect);
+    final hasUniqueOptions =
+        options.map((option) => option.optionId).toSet().length ==
+        options.length;
+    if (!hasCorrectAnswer || !hasUniqueOptions) {
       throw const FormatException('문제의 보기 또는 정답 정보가 없습니다. 다시 불러와 주세요.');
     }
     return QuizQuestionEntity(

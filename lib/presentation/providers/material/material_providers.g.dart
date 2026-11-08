@@ -48,14 +48,14 @@ final class MyMaterialsProvider
   }
 }
 
-String _$myMaterialsHash() => r'3744324c5a740f123fc674f78312d62b956a80c7';
+String _$myMaterialsHash() => r'aaeb8b62c1879cba2670611f3e27a46bd3725c64';
 
-/// 미로그인 상태는 null, 자료 없음은 MATERIAL_NOT_FOUND 오류로 구분합니다.
+/// 미로그인 상태는 null, 자료 없음은 MATERIAL_NOT_FOUND 오류로 구분
 
 @ProviderFor(myMaterial)
 final myMaterialProvider = MyMaterialFamily._();
 
-/// 미로그인 상태는 null, 자료 없음은 MATERIAL_NOT_FOUND 오류로 구분합니다.
+/// 미로그인 상태는 null, 자료 없음은 MATERIAL_NOT_FOUND 오류로 구분
 
 final class MyMaterialProvider
     extends
@@ -67,7 +67,7 @@ final class MyMaterialProvider
     with
         $FutureModifier<StudyMaterialEntity?>,
         $FutureProvider<StudyMaterialEntity?> {
-  /// 미로그인 상태는 null, 자료 없음은 MATERIAL_NOT_FOUND 오류로 구분합니다.
+  /// 미로그인 상태는 null, 자료 없음은 MATERIAL_NOT_FOUND 오류로 구분
   MyMaterialProvider._({
     required MyMaterialFamily super.from,
     required int super.argument,
@@ -112,9 +112,9 @@ final class MyMaterialProvider
   }
 }
 
-String _$myMaterialHash() => r'd827fe1224dc5a16142ddff49beb68fd72b0943c';
+String _$myMaterialHash() => r'91c9ae6da9a217c44b2fe9eeae506506971f568e';
 
-/// 미로그인 상태는 null, 자료 없음은 MATERIAL_NOT_FOUND 오류로 구분합니다.
+/// 미로그인 상태는 null, 자료 없음은 MATERIAL_NOT_FOUND 오류로 구분
 
 final class MyMaterialFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<StudyMaterialEntity?>, int> {
@@ -127,7 +127,7 @@ final class MyMaterialFamily extends $Family
         isAutoDispose: true,
       );
 
-  /// 미로그인 상태는 null, 자료 없음은 MATERIAL_NOT_FOUND 오류로 구분합니다.
+  /// 미로그인 상태는 null, 자료 없음은 MATERIAL_NOT_FOUND 오류로 구분
 
   MyMaterialProvider call({required int materialId}) =>
       MyMaterialProvider._(argument: materialId, from: this);
@@ -194,7 +194,7 @@ final class MyMaterialConceptsProvider
 }
 
 String _$myMaterialConceptsHash() =>
-    r'bdd906b1d00e1ce661be84b84f79a1baf2228f55';
+    r'03b28c016b1ea4b63068fb99a5b10b30ff40371c';
 
 final class MyMaterialConceptsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<MaterialConceptEntity>>, int> {
@@ -214,12 +214,12 @@ final class MyMaterialConceptsFamily extends $Family
   String toString() => r'myMaterialConceptsProvider';
 }
 
-/// 전체 퀴즈 목록과 별개로 자료 ID별 조회·캐시를 유지합니다.
+/// 전체 퀴즈 목록과 별개로 자료 ID별 조회·캐시를 유지
 
 @ProviderFor(materialQuizzes)
 final materialQuizzesProvider = MaterialQuizzesFamily._();
 
-/// 전체 퀴즈 목록과 별개로 자료 ID별 조회·캐시를 유지합니다.
+/// 전체 퀴즈 목록과 별개로 자료 ID별 조회·캐시를 유지
 
 final class MaterialQuizzesProvider
     extends
@@ -231,7 +231,7 @@ final class MaterialQuizzesProvider
     with
         $FutureModifier<List<QuizSummaryEntity>>,
         $FutureProvider<List<QuizSummaryEntity>> {
-  /// 전체 퀴즈 목록과 별개로 자료 ID별 조회·캐시를 유지합니다.
+  /// 전체 퀴즈 목록과 별개로 자료 ID별 조회·캐시를 유지
   MaterialQuizzesProvider._({
     required MaterialQuizzesFamily super.from,
     required int super.argument,
@@ -276,9 +276,9 @@ final class MaterialQuizzesProvider
   }
 }
 
-String _$materialQuizzesHash() => r'86394b8ce911a5374132f49135e70c45887cb61d';
+String _$materialQuizzesHash() => r'6e5ed487e54e7ef8ecf2b3003a7e0da46d565af0';
 
-/// 전체 퀴즈 목록과 별개로 자료 ID별 조회·캐시를 유지합니다.
+/// 전체 퀴즈 목록과 별개로 자료 ID별 조회·캐시를 유지
 
 final class MaterialQuizzesFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<QuizSummaryEntity>>, int> {
@@ -291,7 +291,7 @@ final class MaterialQuizzesFamily extends $Family
         isAutoDispose: true,
       );
 
-  /// 전체 퀴즈 목록과 별개로 자료 ID별 조회·캐시를 유지합니다.
+  /// 전체 퀴즈 목록과 별개로 자료 ID별 조회·캐시를 유지
 
   MaterialQuizzesProvider call({required int materialId}) =>
       MaterialQuizzesProvider._(argument: materialId, from: this);

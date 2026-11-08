@@ -1,5 +1,23 @@
 part of '../quiz_upload_page.dart';
 
+enum _QuizGenerationMode {
+  pdf,
+  material,
+  concept;
+
+  String get actionLabel => switch (this) {
+    pdf => '업로드',
+    material => '문제 생성',
+    concept => '약점 문제 5개 생성',
+  };
+
+  String get sectionTitle => switch (this) {
+    pdf => '파일 업로드',
+    material => '학습 자료',
+    concept => '복습할 개념',
+  };
+}
+
 class _QuizGenerationOptions extends StatelessWidget with QuizUploadState {
   const _QuizGenerationOptions({
     required this.form,
@@ -24,22 +42,22 @@ class _QuizGenerationOptions extends StatelessWidget with QuizUploadState {
 
   @override
   Widget build(BuildContext context) {
+    final mode = switch ((conceptId, materialId)) {
+      (int(), _) => _QuizGenerationMode.concept,
+      (_, int()) => _QuizGenerationMode.material,
+      _ => _QuizGenerationMode.pdf,
+    };
+    final canChooseFile = mode == _QuizGenerationMode.pdf;
     final pdf = form.selectedPdf.value;
+    final hasSource = !canChooseFile || pdf != null;
     final difficulty = difficultyLabel(form.difficulty.value);
     final format = formatLabel(form.format.value);
     final count = form.questionCount.value;
     final pages = form.pages.value;
     return _UploadActionLayout(
       action: _UploadBottomAction(
-        label: conceptId != null
-            ? '약점 문제 5개 생성'
-            : materialId == null
-            ? '업로드'
-            : '문제 생성',
-        onPressed:
-            (pdf == null && materialId == null && conceptId == null) || busy
-            ? null
-            : onUpload,
+        label: mode.actionLabel,
+        onPressed: hasSource && !busy ? onUpload : null,
       ),
       child: SingleChildScrollView(
         padding: EdgeInsets.only(
@@ -50,43 +68,26 @@ class _QuizGenerationOptions extends StatelessWidget with QuizUploadState {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _QuizGenerationHeader(
-              title: conceptId != null ? '약점 문제 생성' : '문제 생성',
-              subtitle: conceptId != null
+              title: mode == _QuizGenerationMode.concept ? '약점 문제 생성' : '문제 생성',
+              subtitle: mode == _QuizGenerationMode.concept
                   ? '선택한 개념으로 문제 5개를 만들어요'
                   : '맞춤 문제를 생성해보세요',
             ),
             const SizedBox(height: 31),
-            _SettingsSectionTitle(
-              conceptId != null
-                  ? '복습할 개념'
-                  : materialId == null
-                  ? '파일 업로드'
-                  : '학습 자료',
-            ),
+            _SettingsSectionTitle(mode.sectionTitle),
             const SizedBox(height: 12),
             _UploadSettingRow(
               key: const ValueKey('upload_file'),
-              title: conceptId != null
-                  ? (conceptName ?? '약한 개념')
-                  : materialId != null
-                  ? (materialTitle ?? '학습 자료')
-                  : form.selectingFile.value
-                  ? 'PDF 선택 중...'
-                  : pdf == null
-                  ? '파일을 업로드해주세요'
-                  : pdfTitle(pdf),
-              subtitle: conceptId != null
-                  ? '이 개념이 나온 페이지로 문제를 생성해요'
-                  : materialId != null
-                  ? '현재 자료로 문제를 생성해요'
-                  : pdf == null
-                  ? '파일을 업로드해주세요'
-                  : selectedDate(pdf.selectedAt),
-              pdf: conceptId == null,
-              showChevron: materialId == null && conceptId == null,
-              onTap: busy || materialId != null || conceptId != null
-                  ? null
-                  : onSelectPdf,
+              title: _sourceTitle(mode, pdf),
+              subtitle: switch (mode) {
+                _QuizGenerationMode.concept => '이 개념이 나온 페이지로 문제를 생성해요',
+                _QuizGenerationMode.material => '현재 자료로 문제를 생성해요',
+                _QuizGenerationMode.pdf =>
+                  pdf == null ? '파일을 업로드해주세요' : selectedDate(pdf.selectedAt),
+              },
+              pdf: mode != _QuizGenerationMode.concept,
+              showChevron: canChooseFile,
+              onTap: canChooseFile && !busy ? onSelectPdf : null,
             ),
             const SizedBox(height: 31),
             const _SettingsSectionTitle('문제 설정'),
@@ -111,7 +112,7 @@ class _QuizGenerationOptions extends StatelessWidget with QuizUploadState {
                       : ''),
               onTap: busy ? null : () => onOpen(_UploadScreen.difficulty),
             ),
-            if (materialId == null && conceptId == null)
+            if (canChooseFile)
               _UploadSettingRow(
                 key: const ValueKey('upload_count'),
                 title: '문제 수',
@@ -124,6 +125,17 @@ class _QuizGenerationOptions extends StatelessWidget with QuizUploadState {
       ),
     );
   }
+
+  String _sourceTitle(_QuizGenerationMode mode, SelectedQuizPdf? pdf) =>
+      switch (mode) {
+        _QuizGenerationMode.concept => conceptName ?? '약한 개념',
+        _QuizGenerationMode.material => materialTitle ?? '학습 자료',
+        _QuizGenerationMode.pdf => switch ((form.selectingFile.value, pdf)) {
+          (true, _) => 'PDF 선택 중...',
+          (_, final file?) => pdfTitle(file),
+          _ => '파일을 업로드해주세요',
+        },
+      };
 }
 
 class _SettingsSectionTitle extends StatelessWidget {

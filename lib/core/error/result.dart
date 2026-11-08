@@ -1,4 +1,4 @@
-abstract class Result<T> {
+sealed class Result<T> {
   static Result<T> failure<T>(Exception error) => Failure<T>(error);
 
   static Result<T> success<T>(T value) => Success<T>(value);
@@ -6,25 +6,25 @@ abstract class Result<T> {
   R fold<R>({
     required R Function(T value) onSuccess,
     required R Function(Exception e) onFailure,
-  }) {
-    if (this case final Success<T> success) {
-      return onSuccess(success.value);
-    }
-    if (this case final Failure<T> failure) {
-      return onFailure(failure.error);
-    }
+  }) => switch (this) {
+    Success<T>(:final value) => onSuccess(value),
+    Failure<T>(:final error) => onFailure(error),
+  };
 
-    throw StateError('Unknown Result subtype: $runtimeType');
-  }
+  /// 성공 값을 꺼내고, 실패는 호출부의 오류 처리로 전달
+  T getOrThrow() => switch (this) {
+    Success<T>(:final value) => value,
+    Failure<T>(:final error) => throw error,
+  };
 }
 
-class Success<T> extends Result<T> {
+final class Success<T> extends Result<T> {
   final T value;
 
   Success(this.value);
 }
 
-class Failure<T> extends Result<T> {
+final class Failure<T> extends Result<T> {
   final Exception error;
 
   Failure(this.error);

@@ -1,20 +1,20 @@
 import 'package:dio/dio.dart';
-import 'package:iquiz/features/quiz/data_source/remote/models/wrong_answer_model.dart';
 import 'package:iquiz/app/network/app_dio.dart';
 import 'package:iquiz/core/helper/future_extension.dart';
 import 'package:iquiz/core/helper/sse_extension.dart';
 import 'package:iquiz/core/helper/stream_extenstion.dart';
 import 'package:iquiz/features/quiz/data_source/remote/enums/quiz_job_status.enum.dart';
+import 'package:iquiz/features/quiz/data_source/remote/models/material_concept_model.dart';
+import 'package:iquiz/features/quiz/data_source/remote/models/material_upload_result_model.dart';
+import 'package:iquiz/features/quiz/data_source/remote/models/quiz_generation_job_model.dart';
 import 'package:iquiz/features/quiz/data_source/remote/models/quiz_generation_options_model.dart';
 import 'package:iquiz/features/quiz/data_source/remote/models/quiz_generation_task_model.dart';
-import 'package:iquiz/features/quiz/data_source/remote/models/quiz_generation_job_model.dart';
 import 'package:iquiz/features/quiz/data_source/remote/models/quiz_model.dart';
-import 'package:iquiz/features/quiz/data_source/remote/models/material_upload_result_model.dart';
-import 'package:iquiz/features/quiz/data_source/remote/models/quiz_submit_result_model.dart';
 import 'package:iquiz/features/quiz/data_source/remote/models/quiz_submit_model.dart';
+import 'package:iquiz/features/quiz/data_source/remote/models/quiz_submit_result_model.dart';
 import 'package:iquiz/features/quiz/data_source/remote/models/quiz_summary_model.dart';
 import 'package:iquiz/features/quiz/data_source/remote/models/study_material_model.dart';
-import 'package:iquiz/features/quiz/data_source/remote/models/material_concept_model.dart';
+import 'package:iquiz/features/quiz/data_source/remote/models/wrong_answer_model.dart';
 import 'package:iquiz/features/quiz/data_source/remote/quiz_remote_data_source.dart';
 
 final class QuizRemoteDataSourceImpl implements QuizRemoteDataSource {
@@ -114,8 +114,7 @@ final class QuizRemoteDataSourceImpl implements QuizRemoteDataSource {
       }
 
       yield job;
-      if (job.status == QuizJobStatus.done ||
-          job.status == QuizJobStatus.failed) {
+      if (job.status.isFinished) {
         return;
       }
     }

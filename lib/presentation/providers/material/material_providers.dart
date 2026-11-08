@@ -20,10 +20,7 @@ int? _watchUserId(Ref ref) => ref.watch(
 Future<List<StudyMaterialEntity>> myMaterials(Ref ref) async {
   if (_watchUserId(ref) == null) return const [];
   final result = await ref.watch(getMyMaterialsUseCaseProvider)();
-  return result.fold(
-    onSuccess: (items) => items,
-    onFailure: (error) => throw error,
-  );
+  return result.getOrThrow();
 }
 
 /// 미로그인 상태는 null, 자료 없음은 MATERIAL_NOT_FOUND 오류로 구분
@@ -36,10 +33,7 @@ Future<StudyMaterialEntity?> myMaterial(
   final result = await ref.watch(getMyMaterialUseCaseProvider)(
     materialId: materialId,
   );
-  return result.fold(
-    onSuccess: (item) => item,
-    onFailure: (error) => throw error,
-  );
+  return result.getOrThrow();
 }
 
 @Riverpod(retry: _noRetry)
@@ -51,10 +45,7 @@ Future<List<MaterialConceptEntity>> myMaterialConcepts(
   final result = await ref.watch(getMyMaterialConceptsUseCaseProvider)(
     materialId: materialId,
   );
-  return result.fold(
-    onSuccess: (items) => items,
-    onFailure: (error) => throw error,
-  );
+  return result.getOrThrow();
 }
 
 /// 전체 퀴즈 목록과 별개로 자료 ID별 조회·캐시를 유지
@@ -67,10 +58,7 @@ Future<List<QuizSummaryEntity>> materialQuizzes(
   final result = await ref.watch(getMyQuizzesUseCaseProvider)(
     materialId: materialId,
   );
-  return result.fold(
-    onSuccess: (items) => items,
-    onFailure: (error) => throw error,
-  );
+  return result.getOrThrow();
 }
 
 /// 생성 결과의 자료 ID를 모르면 전체 family를, 알면 해당 자료만 갱신

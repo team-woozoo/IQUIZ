@@ -1,3 +1,4 @@
+import 'package:iquiz/core/validation/learning_statistics_validator.dart';
 import 'package:iquiz/features/quiz/data_source/remote/enums/material_concept_status.enum.dart';
 import 'package:iquiz/features/quiz/data_source/remote/models/material_concept_model.dart';
 import 'package:iquiz/features/quiz/repositories/enums/material_concept_state.enum.dart';
@@ -15,11 +16,11 @@ final class MaterialConceptEntity {
   });
 
   factory MaterialConceptEntity.fromModel(MaterialConceptModel model) {
-    _validateStatistics(
-      model.questionCount,
-      model.answeredCount,
-      model.correctCount,
-      model.accuracy,
+    LearningStatisticsValidator.validateMaterial(
+      questionCount: model.questionCount,
+      answeredCount: model.answeredCount,
+      correctCount: model.correctCount,
+      accuracy: model.accuracy,
     );
     if (model.conceptId <= 0 || model.pageNos.any((page) => page <= 0)) {
       throw const FormatException('개념 정보 또는 PDF 페이지 번호가 올바르지 않습니다.');
@@ -58,22 +59,4 @@ final class MaterialConceptEntity {
 
   /// 정답률로 재계산하지 않고 서버의 상태를 유지
   final MaterialConceptState status;
-}
-
-void _validateStatistics(
-  int questionCount,
-  int answeredCount,
-  int correctCount,
-  double? accuracy,
-) {
-  if (questionCount < 0 ||
-      answeredCount < 0 ||
-      answeredCount > questionCount ||
-      correctCount < 0 ||
-      correctCount > answeredCount ||
-      (questionCount == 0) != (accuracy == null) ||
-      (accuracy != null &&
-          (!accuracy.isFinite || accuracy < 0 || accuracy > 1))) {
-    throw const FormatException('자료 학습 집계가 올바르지 않습니다.');
-  }
 }

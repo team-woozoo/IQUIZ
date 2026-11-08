@@ -41,23 +41,17 @@ final class AuthTokenManager extends ChangeNotifier implements AuthSession {
     if (_loaded) return;
     final version = _generation;
     final tokens = await _storage(local.read);
-    if (version != _generation || _disposed) return;
+    if (!_isCurrentSession(version)) return;
     _tokens = tokens;
     _loaded = true;
   }
 
   Future<void> saveLogin(JwtEntity tokens, int expectedGeneration) async {
-    if (_disposed || expectedGeneration != _generation) {
-      throw const UnAuthorizedException();
-    }
+    _requireCurrentSession(expectedGeneration);
     final version = ++_generation;
     _refreshing = null;
-    await _storage(() async {
-      if (version == _generation && !_disposed) await local.write(tokens);
-    });
-    if (version != _generation || _disposed) {
-      throw const UnAuthorizedException();
-    }
+    await _persistTokens(tokens, version);
+    _requireCurrentSession(version);
     _tokens = tokens;
     _loaded = true;
   }
@@ -86,16 +80,8 @@ final class AuthTokenManager extends ChangeNotifier implements AuthSession {
       final tokens = JwtEntity.fromModel(
         await remote.refresh(TokenRefreshModel.fromEntity(previous)),
       );
-      try {
-        await _storage(() async {
-          if (version == _generation && !_disposed) await local.write(tokens);
-        });
-      } on Exception {
-        // 저장 실패 후 이미 소비한 Refresh 토큰으로 복원하지 않도록 삭제
-        if (version == _generation) await clear();
-        rethrow;
-      }
-      if (version == _generation && !_disposed) _tokens = tokens;
+      await _persistRefreshedTokens(tokens, version);
+      if (_isCurrentSession(version)) _tokens = tokens;
       // 로그아웃이 대기 중이면 서버 폐기에 사용할 최신 Refresh 토큰을 반환
       return tokens;
     } on Exception catch (error) {
@@ -104,6 +90,27 @@ final class AuthTokenManager extends ChangeNotifier implements AuthSession {
         await clear();
       }
       throw mapped;
+    }
+  }
+
+  bool _isCurrentSession(int version) => !_disposed && version == _generation;
+
+  void _requireCurrentSession(int version) {
+    if (!_isCurrentSession(version)) throw const UnAuthorizedException();
+  }
+
+  Future<void> _persistTokens(JwtEntity tokens, int version) =>
+      _storage(() async {
+        if (_isCurrentSession(version)) await local.write(tokens);
+      });
+
+  Future<void> _persistRefreshedTokens(JwtEntity tokens, int version) async {
+    try {
+      await _persistTokens(tokens, version);
+    } on Exception {
+      // 회전한 Refresh 토큰 저장에 실패하면 이전 토큰으로 복원하지 않음
+      if (version == _generation) await clear();
+      rethrow;
     }
   }
 
@@ -117,17 +124,11 @@ final class AuthTokenManager extends ChangeNotifier implements AuthSession {
       _signingOut ??= _signOut().whenComplete(() => _signingOut = null);
 
   Future<void> _signOut() async {
-    var tokens = _tokens;
+    final previous = _tokens;
     final pending = _refreshing;
     _invalidate();
     try {
-      if (pending != null) {
-        try {
-          tokens = await pending;
-        } on Exception {
-          // 재발급이 실패해도 기존 토큰으로 서버 로그아웃은 시도
-        }
-      }
+      final tokens = await _latestTokens(previous, pending);
       if (tokens != null) {
         await remote.signOut(TokenRefreshModel.fromEntity(tokens));
       }
@@ -135,6 +136,18 @@ final class AuthTokenManager extends ChangeNotifier implements AuthSession {
       // 서버 응답과 관계없이 로컬 로그아웃을 완료
     } finally {
       await _storage(local.delete);
+    }
+  }
+
+  Future<JwtEntity?> _latestTokens(
+    JwtEntity? previous,
+    Future<JwtEntity>? pending,
+  ) async {
+    try {
+      return await pending ?? previous;
+    } on Exception {
+      // 재발급이 실패해도 기존 토큰으로 서버 로그아웃은 시도
+      return previous;
     }
   }
 

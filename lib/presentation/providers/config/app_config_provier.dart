@@ -14,17 +14,9 @@ class AppConfigProvier extends _$AppConfigProvier {
     final initialConfig = await repository.getConfig();
     if (!ref.mounted) return;
 
-    yield initialConfig.fold(
-      onSuccess: (config) => config,
-      onFailure: (error) => throw error,
-    );
+    yield initialConfig.getOrThrow();
 
     // Config 값 구독
-    yield* repository.watchConfig().map(
-      (result) => result.fold(
-        onSuccess: (config) => config,
-        onFailure: (error) => throw error,
-      ),
-    );
+    yield* repository.watchConfig().map((result) => result.getOrThrow());
   }
 }

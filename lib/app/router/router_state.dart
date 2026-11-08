@@ -1,9 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iquiz/app/router/router.dart';
-import 'package:iquiz/presentation/providers/user/user_auth_provider.dart';
-import 'package:iquiz/presentation/providers/config/app_config_provier.dart';
 import 'package:iquiz/presentation/pages/splash/providers/splash_animation.dart';
+import 'package:iquiz/presentation/providers/config/app_config_provier.dart';
+import 'package:iquiz/presentation/providers/user/user_auth_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'router_state.g.dart';
@@ -42,27 +42,10 @@ class RouterState extends _$RouterState {
           return path == NoticeRoute.path ? null : NoticeRoute.path;
         }
 
-        final auth = ref.read(userAuthProvider);
-        final isAuthPage = path == SignInRoute.path || path == SignUpRoute.path;
-        switch (auth.status) {
-          case AuthStatus.initializing:
-          case AuthStatus.failure:
-            return path == SplashRoute.path ? null : SplashRoute.path;
-          case AuthStatus.unauthenticated:
-            if (isAuthPage) return null;
-            return SignInRoute(from: path == UploadRoute.path ? path : null)
-                .location;
-          case AuthStatus.authenticated:
-            if (isAuthPage ||
-                path == SplashRoute.path ||
-                path == NoticeRoute.path) {
-              // 앱 내부 보호 경로만 허용
-              return route.uri.queryParameters['from'] == UploadRoute.path
-                  ? UploadRoute.path
-                  : HomeRoute.path;
-            }
-            return null;
-        }
+        return _authenticationRedirect(
+          route.uri,
+          ref.read(userAuthProvider).status,
+        );
       },
     );
 
@@ -72,5 +55,26 @@ class RouterState extends _$RouterState {
     ref.onDispose(router.dispose);
 
     return router;
+  }
+
+  String? _authenticationRedirect(Uri location, AuthStatus status) {
+    final path = location.path;
+    const authPaths = {SignInRoute.path, SignUpRoute.path};
+    const entryPaths = {...authPaths, SplashRoute.path, NoticeRoute.path};
+
+    return switch (status) {
+      AuthStatus.initializing ||
+      AuthStatus.failure => path == SplashRoute.path ? null : SplashRoute.path,
+      AuthStatus.unauthenticated when authPaths.contains(path) => null,
+      AuthStatus.unauthenticated => SignInRoute(
+        from: path == UploadRoute.path ? path : null,
+      ).location,
+      // 앱 내부 보호 경로만 허용
+      AuthStatus.authenticated when entryPaths.contains(path) =>
+        location.queryParameters['from'] == UploadRoute.path
+            ? UploadRoute.path
+            : HomeRoute.path,
+      AuthStatus.authenticated => null,
+    };
   }
 }

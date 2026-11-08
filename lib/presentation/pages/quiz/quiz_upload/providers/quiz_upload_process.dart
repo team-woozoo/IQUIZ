@@ -5,8 +5,8 @@ import 'package:iquiz/features/quiz/repositories/entities/quiz_generation_option
 import 'package:iquiz/features/quiz/repositories/enums/quiz_generation_status.enum.dart';
 import 'package:iquiz/presentation/pages/home/providers/my_quizzes_provider.dart';
 import 'package:iquiz/presentation/pages/quiz/quiz_upload/providers/quiz_generation_state.dart';
-import 'package:iquiz/presentation/providers/quiz/quiz_generation_activity_provider.dart';
 import 'package:iquiz/presentation/providers/material/material_providers.dart';
+import 'package:iquiz/presentation/providers/quiz/quiz_generation_activity_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'quiz_upload_process.g.dart';
@@ -33,16 +33,16 @@ class QuizUploadProcess extends _$QuizUploadProcess {
       requestWeaknessQuizGenerationUseCaseProvider,
     );
     final watchGenerationJob = ref.read(watchGenerationJobUseCaseProvider);
-    if (materialId == null &&
-        conceptId == null &&
-        (fileBytes == null || fileName == null)) {
+    final uploadsPdf = materialId == null && conceptId == null;
+    final hasPdf = fileBytes != null && fileName != null;
+    if (uploadsPdf && !hasPdf) {
       throw const FormatException('문제를 생성할 자료를 선택해 주세요.');
     }
     final activity = ref.read(quizGenerationActivityProvider.notifier);
     // 업로드 화면을 나가도 완료될 때까지 작업과 SSE 구독을 유지
     final retention = ref.keepAlive();
     yield QuizGenerationState(
-      status: materialId == null && conceptId == null
+      status: uploadsPdf
           ? QuizGenerationStatus.uploading
           : QuizGenerationStatus.pending,
     );
@@ -57,7 +57,7 @@ class QuizUploadProcess extends _$QuizUploadProcess {
         ? fileName.substring(0, fileName.length - 4)
         : fileName;
     Future<void> Function()? cancelEvents;
-    var materialDataRefreshedAtTerminal = false;
+    var materialDataRefreshed = false;
     final activityId = activity.start(
       title: materialTitle == null || materialTitle.isEmpty
           ? fallbackTitle
@@ -68,6 +68,8 @@ class QuizUploadProcess extends _$QuizUploadProcess {
         if (cancel != null) unawaited(cancel());
       },
     );
+    bool isActive() => ref.mounted && activity.contains(activityId);
+
     activity.retain(
       activityId,
       quizUploadProcessProvider(
@@ -80,46 +82,39 @@ class QuizUploadProcess extends _$QuizUploadProcess {
       ),
     );
     try {
-      final uploadResult = conceptId != null
-          ? await generateWeakness(conceptId: conceptId, options: options)
-          : materialId != null
-          ? await generateMaterial(materialId: materialId, options: options)
-          : await uploadFile(
-              fileBytes: fileBytes!,
-              fileName: fileName!,
-              options: options,
-              title: title,
-            );
-      if (!ref.mounted || !activity.contains(activityId)) return;
-      final jobId = uploadResult.fold(
-        onSuccess: (jobId) => jobId,
-        onFailure: (error) => throw error,
-      );
+      final uploadResult = await switch ((conceptId, materialId)) {
+        (final id?, _) => generateWeakness(conceptId: id, options: options),
+        (_, final id?) => generateMaterial(materialId: id, options: options),
+        _ => uploadFile(
+          fileBytes: fileBytes!,
+          fileName: fileName!,
+          options: options,
+          title: title,
+        ),
+      };
+      if (!isActive()) return;
+      final jobId = uploadResult.getOrThrow();
       activity.update(activityId, QuizGenerationStatus.pending);
       invalidateMaterialData(ref, materialId: materialId);
       yield QuizGenerationState(
         status: QuizGenerationStatus.pending,
         jobId: jobId,
       );
-      if (!ref.mounted || !activity.contains(activityId)) return;
+      if (!isActive()) return;
 
       final events = StreamIterator(watchGenerationJob(jobId: jobId));
       cancelEvents = events.cancel;
       while (await events.moveNext()) {
-        if (!ref.mounted || !activity.contains(activityId)) return;
+        if (!isActive()) return;
         final event = events.current;
-        final job = event.fold(
-          onSuccess: (job) => job,
-          onFailure: (error) => throw error,
-        );
+        final job = event.getOrThrow();
         activity.update(activityId, job.status);
         if (job.status == QuizGenerationStatus.done) {
           ref.invalidate(myQuizzesProvider);
         }
-        if (job.status == QuizGenerationStatus.done ||
-            job.status == QuizGenerationStatus.failed) {
+        if (job.status.isFinished) {
           invalidateMaterialData(ref, materialId: materialId);
-          materialDataRefreshedAtTerminal = true;
+          materialDataRefreshed = true;
         }
         yield QuizGenerationState(
           status: job.status,
@@ -127,18 +122,17 @@ class QuizUploadProcess extends _$QuizUploadProcess {
           quizId: job.quizId,
           error: job.error,
         );
-        if (job.status == QuizGenerationStatus.done ||
-            job.status == QuizGenerationStatus.failed) {
+        if (job.status.isFinished) {
           return;
         }
       }
     } finally {
       await cancelEvents?.call();
       // 업로드 후 생성 요청 실패나 SSE 실패 시에도 자료를 다시 조회
-      if (ref.mounted && !materialDataRefreshedAtTerminal) {
+      if (ref.mounted && !materialDataRefreshed) {
         invalidateMaterialData(ref, materialId: materialId);
       }
-      if (ref.mounted && activity.contains(activityId)) {
+      if (isActive()) {
         activity.finish(activityId);
       }
       retention.close();

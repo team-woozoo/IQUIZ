@@ -15,12 +15,7 @@ final class SubmitWrongAnswerReviewUseCase {
   }) async {
     // 대기 중 원본 목록이 바뀌어도 검증·요청에 사용할 답안은 동일하게 유지
     final snapshot = List<QuizAnswerEntity>.unmodifiable(answers);
-    if (snapshot.isEmpty ||
-        snapshot.any(
-          (answer) => answer.questionId <= 0 || answer.optionId <= 0,
-        ) ||
-        snapshot.map((answer) => answer.questionId).toSet().length !=
-            snapshot.length) {
+    if (!QuizAnswerEntity.isValidSelection(snapshot)) {
       return Result.failure(const FormatException('복습할 문제마다 답안을 하나씩 선택해 주세요.'));
     }
     if (_submitting) {

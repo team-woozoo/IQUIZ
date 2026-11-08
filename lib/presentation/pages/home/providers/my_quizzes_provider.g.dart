@@ -48,4 +48,4 @@ final class MyQuizzesProvider
   }
 }
 
-String _$myQuizzesHash() => r'6846a72d030002279f3db54f4d2193ec48191127';
+String _$myQuizzesHash() => r'0240222b65495dd8ce2cc81d53634e5075c878b2';

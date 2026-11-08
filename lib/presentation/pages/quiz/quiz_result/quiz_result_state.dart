@@ -54,23 +54,6 @@ mixin class QuizResultState {
     return result;
   }
 
-  String pagesLabel(List<int> pages) {
-    if (pages.isEmpty) return '페이지 정보 없음';
-    final parts = <String>[];
-    var start = pages.first;
-    var end = start;
-    for (final page in pages.skip(1)) {
-      if (page == end + 1) {
-        end = page;
-      } else {
-        parts.add(start == end ? '$start' : '$start~$end');
-        start = end = page;
-      }
-    }
-    parts.add(start == end ? '$start' : '$start~$end');
-    return 'PDF ${parts.join(', ')} 페이지';
-  }
-
   ({String title, String message}) insight(QuizResultRouteArg data) {
     final wrong = data.submission.results
         .where((result) => !result.correct)

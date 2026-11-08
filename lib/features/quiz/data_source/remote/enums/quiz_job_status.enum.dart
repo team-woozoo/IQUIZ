@@ -23,6 +23,8 @@ enum QuizJobStatus {
 
   final String? json;
 
+  bool get isFinished => this == done || this == failed;
+
   @override
   String toString() => json?.toString() ?? super.toString();
 

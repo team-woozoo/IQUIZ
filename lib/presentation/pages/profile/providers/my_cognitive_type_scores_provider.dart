@@ -17,8 +17,5 @@ Future<List<CognitiveTypeScoreEntity>> myCognitiveTypeScores(Ref ref) async {
   );
   if (userId == null) return const [];
   final result = await ref.watch(getMyCognitiveTypeScoresUseCaseProvider)();
-  return result.fold(
-    onSuccess: (scores) => scores,
-    onFailure: (error) => throw error,
-  );
+  return result.getOrThrow();
 }

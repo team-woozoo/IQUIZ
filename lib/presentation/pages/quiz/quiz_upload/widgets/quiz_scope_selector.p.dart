@@ -38,7 +38,6 @@ class _QuizScopeSelector extends HookConsumerWidget {
       },
       [future],
     );
-    final value = document.data;
     final selected = selectedPages.value;
     return _UploadActionLayout(
       action: _UploadBottomAction(
@@ -59,77 +58,12 @@ class _QuizScopeSelector extends HookConsumerWidget {
             ),
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 31)),
-          if (pdf == null)
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.all(24),
-                child: Text(
-                  'PDF 파일을 선택하면 출제 범위를 확인할 수 있어요.',
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            )
-          else if (document.hasError)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    const Text(
-                      'PDF 미리보기를 불러오지 못했어요.',
-                      textAlign: TextAlign.center,
-                    ),
-                    TextButton(
-                      onPressed: () => attempt.value++,
-                      child: const Text('다시 시도'),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          else if (value == null)
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.all(32),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-              sliver: SliverGrid.builder(
-                itemCount: value.pageCount,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 109 / 146,
-                ),
-                itemBuilder: (context, index) {
-                  final page = index + 1;
-                  return _PdfPageChoice(
-                    key: ValueKey('pdf_page_$page'),
-                    document: value,
-                    page: page,
-                    selected: selected == null || selected.contains(page),
-                    onTap: () {
-                      final next = selectedPages.value == null
-                          ? {
-                              for (
-                                var number = 1;
-                                number <= value.pageCount;
-                                number++
-                              )
-                                number,
-                            }
-                          : Set<int>.of(selectedPages.value!);
-                      next.contains(page) ? next.remove(page) : next.add(page);
-                      selectedPages.value = next;
-                    },
-                  );
-                },
-              ),
-            ),
+          _PdfScopePages(
+            hasPdf: pdf != null,
+            snapshot: document,
+            selectedPages: selectedPages,
+            onRetry: () => attempt.value++,
+          ),
           SliverToBoxAdapter(
             child: SizedBox(height: BaseBottomNavigationBar.overlayHeight),
           ),
@@ -137,6 +71,94 @@ class _QuizScopeSelector extends HookConsumerWidget {
       ),
     );
   }
+}
+
+/// 파일 선택, 로딩, 실패, 페이지 표시를 각각 하나의 상태로 렌더링
+class _PdfScopePages extends StatelessWidget {
+  const _PdfScopePages({
+    required this.hasPdf,
+    required this.snapshot,
+    required this.selectedPages,
+    required this.onRetry,
+  });
+
+  final bool hasPdf;
+  final AsyncSnapshot<QuizPdfDocument> snapshot;
+  final ValueNotifier<Set<int>?> selectedPages;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) =>
+      switch ((hasPdf, snapshot.hasError, snapshot.data)) {
+        (false, _, _) => const _PdfScopeMessage(
+          message: 'PDF 파일을 선택하면 출제 범위를 확인할 수 있어요.',
+        ),
+        (_, true, _) => _PdfScopeMessage(
+          message: 'PDF 미리보기를 불러오지 못했어요.',
+          onRetry: onRetry,
+        ),
+        (_, _, final document?) => _pageGrid(document),
+        _ => const SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.all(32),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+        ),
+      };
+
+  Widget _pageGrid(QuizPdfDocument document) => SliverPadding(
+    padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+    sliver: SliverGrid.builder(
+      itemCount: document.pageCount,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 109 / 146,
+      ),
+      itemBuilder: (context, index) {
+        final page = index + 1;
+        final selected = selectedPages.value;
+        return _PdfPageChoice(
+          key: ValueKey('pdf_page_$page'),
+          document: document,
+          page: page,
+          selected: selected == null || selected.contains(page),
+          onTap: () => _togglePage(document.pageCount, page),
+        );
+      },
+    ),
+  );
+
+  void _togglePage(int pageCount, int page) {
+    final current = selectedPages.value;
+    final pages = current == null
+        ? {for (var number = 1; number <= pageCount; number++) number}
+        : Set<int>.of(current);
+    pages.contains(page) ? pages.remove(page) : pages.add(page);
+    selectedPages.value = pages;
+  }
+}
+
+class _PdfScopeMessage extends StatelessWidget {
+  const _PdfScopeMessage({required this.message, this.onRetry});
+
+  final String message;
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) => SliverToBoxAdapter(
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        children: [
+          Text(message, textAlign: TextAlign.center),
+          if (onRetry != null)
+            TextButton(onPressed: onRetry, child: const Text('다시 시도')),
+        ],
+      ),
+    ),
+  );
 }
 
 class _PdfPageChoice extends HookWidget {
@@ -172,27 +194,26 @@ class _PdfPageChoice extends HookWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              if (image.data != null)
-                Image.memory(
-                  image.data!,
+              switch ((image.data, image.hasError)) {
+                (final bytes?, _) => Image.memory(
+                  bytes,
                   fit: BoxFit.cover,
                   gaplessPlayback: true,
-                )
-              else if (image.hasError)
-                const Center(
+                ),
+                (_, true) => const Center(
                   child: Icon(
                     Icons.picture_as_pdf_outlined,
                     color: AppColor.disabledText,
                   ),
-                )
-              else
-                const Center(
+                ),
+                _ => const Center(
                   child: SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
                 ),
+              },
               const DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(

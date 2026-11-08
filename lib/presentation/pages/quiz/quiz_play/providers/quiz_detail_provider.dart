@@ -12,8 +12,5 @@ Future<QuizEntity> quizDetail(Ref ref) async {
     throw const FormatException('퀴즈 주소가 올바르지 않습니다.');
   }
   final result = await ref.read(getQuizUseCaseProvider)(quizId: quizId);
-  return result.fold(
-    onSuccess: (quiz) => quiz,
-    onFailure: (error) => throw error,
-  );
+  return result.getOrThrow();
 }

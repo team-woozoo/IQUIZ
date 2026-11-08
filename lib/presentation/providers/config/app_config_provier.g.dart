@@ -33,7 +33,7 @@ final class AppConfigProvierProvider
   AppConfigProvier create() => AppConfigProvier();
 }
 
-String _$appConfigProvierHash() => r'57906a431409ec288b819d9f37bdd9f1a99d3f33';
+String _$appConfigProvierHash() => r'cb890a6218ae3270f787bd2a28ebd460e1eae786';
 
 abstract class _$AppConfigProvier extends $StreamNotifier<ConfigEntity> {
   Stream<ConfigEntity> build();
