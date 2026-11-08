@@ -3,6 +3,8 @@ import 'package:iquiz/core/exception/custom_exception.dart';
 import 'package:iquiz/features/quiz/repositories/enums/quiz_generation_status.enum.dart';
 
 final class QuizGenerationState {
+  /// 퀴즈 생성의 진행 상태·작업 ID·퀴즈 ID·오류를 저장
+  /// 진행 상태를 생략하면 아직 요청하지 않은 대기 상태로 생성
   const QuizGenerationState({
     this.status = QuizGenerationStatus.idle,
     this.jobId,
@@ -15,6 +17,7 @@ final class QuizGenerationState {
   final int? quizId;
   final Exception? error;
 
+  /// 현재 생성 상태에 따라 화면 상단에 표시할 제목을 반환
   String get title => switch (status) {
     QuizGenerationStatus.idle => '어떤 퀴즈를 만들까요?',
     QuizGenerationStatus.uploading => '학습 자료를 업로드하고 있어요',
@@ -24,6 +27,8 @@ final class QuizGenerationState {
     QuizGenerationStatus.failed => '퀴즈 생성을 완료하지 못했어요',
   };
 
+  /// 현재 생성 상태의 상세 안내를 반환
+  /// 실패 시 서버 상세 오류 또는 통신 오류에 맞는 안내 문구를 선택
   String get message => switch (status) {
     QuizGenerationStatus.idle => '난이도와 문제 유형을 고른 뒤 PDF를 업로드해 주세요.',
     QuizGenerationStatus.uploading => 'PDF를 업로드하고 학습 자료를 준비하고 있어요.',
@@ -43,6 +48,7 @@ final class QuizGenerationState {
     },
   };
 
+  /// 현재 생성 상태에 따라 PDF 선택·업로드 버튼에 표시할 문구를 반환
   String get buttonLabel => switch (status) {
     QuizGenerationStatus.idle => 'PDF 선택 후 업로드',
     QuizGenerationStatus.uploading => 'PDF 업로드 중...',
@@ -52,5 +58,6 @@ final class QuizGenerationState {
     QuizGenerationStatus.failed => 'PDF 다시 선택하기',
   };
 
+  /// 업로드·생성 대기·문제 생성 중 상태인지 반환
   bool get isBusy => status.isBusy;
 }

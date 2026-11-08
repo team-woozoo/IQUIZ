@@ -1,16 +1,15 @@
 part of '../home_page.dart';
 
-class _HomeBottomNavigation extends ConsumerWidget {
+class _HomeBottomNavigation extends ConsumerWidget with HomeState, HomeEvent {
   const _HomeBottomNavigation();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final current = ref.watch(homeBottomNavigationProvider);
+    final current = currentNavigationTab(ref);
     final noteSelected = current == HomeNavigationTab.note;
     final profileSelected = current == HomeNavigationTab.profile;
     final noteStyle = current != HomeNavigationTab.home;
-    void select(HomeNavigationTab tab) =>
-        ref.read(homeBottomNavigationProvider.notifier).changeTab(tab);
+    void select(HomeNavigationTab tab) => onNavigationTabSelected(ref, tab);
     return Material(
       color: AppColor.white,
       child: Padding(

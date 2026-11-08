@@ -50,7 +50,7 @@ class MaterialDetailPage extends BasePage
   Widget buildPage(BuildContext context, WidgetRef ref) {
     final tab = useState(0);
     final openingQuiz = useState(false);
-    final material = ref.watch(myMaterialProvider(materialId: materialId));
+    final material = materialAsync(ref, materialId);
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 720),
@@ -66,9 +66,7 @@ class MaterialDetailPage extends BasePage
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, _) => _MaterialMessage(
                   message: materialError(error),
-                  onRetry: () => ref.invalidate(
-                    myMaterialProvider(materialId: materialId),
-                  ),
+                  onRetry: () => onRetryMaterial(ref, materialId),
                 ),
                 data: (item) => item == null
                     ? const _MaterialMessage(message: '로그인 후 자료를 확인해 주세요.')
@@ -157,10 +155,5 @@ class MaterialDetailPage extends BasePage
   }
 
   @override
-  void onResumed(WidgetRef ref) {
-    ref.invalidate(myMaterialsProvider);
-    ref.invalidate(myMaterialProvider(materialId: materialId));
-    ref.invalidate(myMaterialConceptsProvider(materialId: materialId));
-    ref.invalidate(materialQuizzesProvider(materialId: materialId));
-  }
+  void onResumed(WidgetRef ref) => onResumeRefresh(ref, materialId);
 }

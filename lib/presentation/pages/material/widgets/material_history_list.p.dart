@@ -6,9 +6,8 @@ class _MaterialHistoryList extends ConsumerWidget
   final int materialId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => ref
-      .watch(materialQuizzesProvider(materialId: materialId))
-      .when(
+  Widget build(BuildContext context, WidgetRef ref) =>
+      quizzesAsync(ref, materialId).when(
         skipLoadingOnReload: false,
         loading: () => const SliverToBoxAdapter(
           child: Padding(
@@ -19,8 +18,7 @@ class _MaterialHistoryList extends ConsumerWidget
         error: (error, _) => SliverToBoxAdapter(
           child: _MaterialMessage(
             message: materialError(error),
-            onRetry: () =>
-                ref.invalidate(materialQuizzesProvider(materialId: materialId)),
+            onRetry: () => onRetryQuizzes(ref, materialId),
           ),
         ),
         data: (items) => items.isEmpty

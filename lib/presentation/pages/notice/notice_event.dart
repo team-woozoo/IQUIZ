@@ -1,6 +1,8 @@
 part of 'notice_page.dart';
 
 mixin class NoticeEvent {
+  /// 업데이트 [uri]를 외부 앱으로 열고 실패하면 안내 메시지를 표시
+  /// 스킴이 없는 주소는 열지 않으며 실행 오류는 로그에 기록
   Future<void> onUpdateTapped(WidgetRef ref, Uri uri) async {
     final context = ref.context;
     if (!uri.hasScheme) {

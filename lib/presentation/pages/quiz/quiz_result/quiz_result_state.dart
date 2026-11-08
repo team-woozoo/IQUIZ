@@ -9,9 +9,13 @@ typedef QuizConceptResult = ({
 });
 
 mixin class QuizResultState {
+  /// 현재 결과 화면에 주입된 퀴즈·채점 결과·제출 답안을 구독
+  /// 결과 정보가 없으면 null을 반환
   QuizResultRouteArg? resultData(WidgetRef ref) =>
       ref.watch(quizResultRouteArgProvider);
 
+  /// [data]의 문제를 개념별로 묶어 문항 수·근거 페이지·오답·미응답 수를 집계
+  /// 개념 이름이 비면 기타 개념으로 분류하고 오답 수 내림차순·첫 근거 페이지 오름차순으로 정렬
   List<QuizConceptResult> conceptResults(QuizResultRouteArg data) {
     final correct = {
       for (final result in data.submission.results)
@@ -54,6 +58,8 @@ mixin class QuizResultState {
     return result;
   }
 
+  /// [data]의 오답을 인지 유형별로 집계해 복습 안내의 제목과 본문을 생성
+  /// 오답이 없으면 완료 안내를, 인지 유형 정보가 없으면 일반 복습 안내를 반환
   ({String title, String message}) insight(QuizResultRouteArg data) {
     final wrong = data.submission.results
         .where((result) => !result.correct)

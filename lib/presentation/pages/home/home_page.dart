@@ -35,14 +35,15 @@ part 'widgets/home_content.p.dart';
 part 'widgets/home_bottom_navigation.p.dart';
 
 /// 탭 이동은 라우트를 교체하지 않고 홈 PageView 안에서 처리
-class HomePage extends BasePage {
+class HomePage extends BasePage with HomeState, HomeEvent {
   const HomePage({super.key, this.initialTab = HomeNavigationTab.home});
   final HomeNavigationTab initialTab;
 
   @override
-  void onReady(WidgetRef ref) => ref
-      .read(homeBottomNavigationProvider.notifier)
-      .changeTab(initialTab.isEnabled ? initialTab : HomeNavigationTab.home);
+  void onReady(WidgetRef ref) => onNavigationTabSelected(
+    ref,
+    initialTab.isEnabled ? initialTab : HomeNavigationTab.home,
+  );
 
   @override
   Widget buildBottomNavigationBar(BuildContext context) =>
@@ -52,7 +53,7 @@ class HomePage extends BasePage {
   Widget buildPage(BuildContext context, WidgetRef ref) {
     final startTab = initialTab.isEnabled ? initialTab : HomeNavigationTab.home;
     final controller = usePageController(initialPage: startTab.index);
-    final currentTab = ref.watch(homeBottomNavigationProvider);
+    final currentTab = currentNavigationTab(ref);
     final fade = useAnimationController(
       duration: const Duration(milliseconds: 200),
     );

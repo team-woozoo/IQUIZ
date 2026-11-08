@@ -1,6 +1,8 @@
 part of 'quiz_upload_page.dart';
 
 mixin class QuizUploadEvent {
+  /// PDF 파일을 선택하고 바이트·파일명·선택 시각을 [form]에 저장
+  /// 중복 선택과 생성 중 선택을 막으며 새 PDF를 선택하면 기존 페이지 범위를 초기화
   Future<void> onSelectPdf(
     WidgetRef ref,
     QuizUploadFormState form,
@@ -36,6 +38,8 @@ mixin class QuizUploadEvent {
     }
   }
 
+  /// 선택한 PDF 또는 [materialId]·[conceptId]로 퀴즈 생성 요청 상태를 설정
+  /// 중복 요청을 차단하며 현재 API가 지원하는 문제 유형과 난이도만 전달
   void onUpload(
     QuizUploadFormState form,
     QuizGenerationState generation, {
@@ -60,6 +64,8 @@ mixin class QuizUploadEvent {
     );
   }
 
+  /// [form]의 이전 PDF와 생성 옵션으로 새 요청을 구성
+  /// 새 옵션 객체를 만들어 종료된 작업의 상태를 재사용하지 않고 명시적으로 재시도
   void onRetryUpload(QuizUploadFormState form) {
     final request = form.request.value;
     if (request == null) return;
@@ -73,8 +79,11 @@ mixin class QuizUploadEvent {
     );
   }
 
+  /// 홈 화면으로 이동하고 홈 탭을 선택
   void onHomeTapped(BuildContext context) => goToHome(context);
 
+  /// 생성된 [quizId]의 풀이 화면으로 이동하며 자료 제목을 함께 전달
+  /// 기존 자료·약점 개념으로 생성했으면 이전 화면을 유지하고 새 PDF이면 현재 경로를 교체
   void onQuizTapped(
     BuildContext context,
     int quizId, {

@@ -13,11 +13,13 @@ import 'package:iquiz/presentation/pages/wrong_answers/providers/my_wrong_answer
 import 'package:iquiz/presentation/providers/material/material_providers.dart';
 import 'package:iquiz/presentation/widgets/base_page.dart';
 
+part 'wrong_answers_state.dart';
 part 'wrong_answers_event.dart';
 part 'widgets/wrong_answer_tile.p.dart';
 part 'widgets/wrong_answer_filters.p.dart';
 
-class WrongAnswersPage extends BasePage with WrongAnswersEvent {
+class WrongAnswersPage extends BasePage
+    with WrongAnswersState, WrongAnswersEvent {
   const WrongAnswersPage({super.key});
 
   @override
@@ -25,15 +27,9 @@ class WrongAnswersPage extends BasePage with WrongAnswersEvent {
 
   @override
   Widget buildPage(BuildContext context, WidgetRef ref) {
-    final answers = ref.watch(myWrongAnswersProvider);
-    final materials = ref.watch(myMaterialsProvider);
-    final availableMaterials = <int, String>{
-      for (final material
-          in materials.asData?.value ?? const <StudyMaterialEntity>[])
-        material.materialId: material.title,
-      for (final item in answers.asData?.value ?? const <WrongAnswerEntity>[])
-        item.materialId: item.materialTitle,
-    };
+    final answers = answersAsync(ref);
+    final materials = materialsAsync(ref);
+    final availableMaterials = materialTitles(materials, answers);
     final materialId = useState<int?>(null);
     final searchOpen = useState(false);
     final search = useTextEditingController();
@@ -59,10 +55,7 @@ class WrongAnswersPage extends BasePage with WrongAnswersEvent {
                       height: 56,
                     ),
                     padding: EdgeInsets.zero,
-                    onPressed: () {
-                      searchOpen.value = !searchOpen.value;
-                      if (!searchOpen.value) search.clear();
-                    },
+                    onPressed: () => onSearchToggled(searchOpen, search),
                     icon: SvgPicture.asset('assets/icons/note_search.svg'),
                   ),
                   IconButton(
@@ -72,7 +65,7 @@ class WrongAnswersPage extends BasePage with WrongAnswersEvent {
                       height: 56,
                     ),
                     padding: EdgeInsets.zero,
-                    onPressed: () => const UploadRoute().push<void>(context),
+                    onPressed: () => onUploadTapped(context),
                     icon: SvgPicture.asset('assets/icons/note_add.svg'),
                   ),
                 ],
@@ -126,29 +119,21 @@ class WrongAnswersPage extends BasePage with WrongAnswersEvent {
                           ).copyWith(color: AppColor.secondaryText),
                         ),
                         TextButton(
-                          onPressed: () =>
-                              ref.invalidate(myWrongAnswersProvider),
+                          onPressed: () => onRetry(ref),
                           child: const Text('다시 시도'),
                         ),
                       ],
                     ),
                   ),
                   data: (items) {
-                    final activeId =
-                        availableMaterials.containsKey(materialId.value)
-                        ? materialId.value
-                        : null;
-                    final visible = items
-                        .where(
-                          (item) =>
-                              (activeId == null ||
-                                  item.materialId == activeId) &&
-                              (query.isEmpty ||
-                                  '${item.content} ${item.conceptName} ${item.materialTitle}'
-                                      .toLowerCase()
-                                      .contains(query)),
-                        )
-                        .toList();
+                    final visible = matchingAnswers(
+                      items,
+                      query: query,
+                      materialId:
+                          availableMaterials.containsKey(materialId.value)
+                          ? materialId.value
+                          : null,
+                    );
                     if (visible.isEmpty) {
                       return _message(
                         child: Text(

@@ -9,7 +9,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:iquiz/app/router/router.dart';
 import 'package:iquiz/app/style/app_text_style.dart';
 import 'package:iquiz/core/constants/app_color.dart';
+import 'package:iquiz/features/auth/repositories/entities/user_entity.dart';
 import 'package:iquiz/features/learning_profile/repositories/entities/cognitive_type_score_entity.dart';
+import 'package:iquiz/features/learning_profile/repositories/entities/weak_concept_entity.dart';
 import 'package:iquiz/features/learning_profile/repositories/enums/cognitive_type.enum.dart';
 import 'package:iquiz/presentation/pages/home/home_page.dart';
 import 'package:iquiz/presentation/pages/home/providers/my_weak_concepts_provider.dart';
@@ -18,12 +20,14 @@ import 'package:iquiz/presentation/providers/user/user_auth_provider.dart';
 import 'package:iquiz/presentation/widgets/base_app_bar.dart';
 import 'package:iquiz/presentation/widgets/base_page.dart';
 
+part 'profile_state.dart';
+part 'profile_event.dart';
 part 'widgets/profile_app_bar.p.dart';
 part 'widgets/profile_learning_analysis.p.dart';
 part 'widgets/profile_score_chart.p.dart';
 part 'widgets/profile_weak_concepts_sheet.p.dart';
 
-class ProfilePage extends BasePage {
+class ProfilePage extends BasePage with ProfileState, ProfileEvent {
   const ProfilePage({super.key});
 
   @override
@@ -35,43 +39,15 @@ class ProfilePage extends BasePage {
 
   @override
   Widget buildPage(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(userAuthProvider).user;
+    final user = profileUser(ref);
     final signingOut = useState(false);
-
-    Future<void> signOut() async {
-      if (signingOut.value) return;
-      signingOut.value = true;
-      try {
-        final result = await ref.read(userAuthProvider.notifier).signOut();
-        if (!context.mounted) return;
-        result.fold(
-          onSuccess: (_) {},
-          onFailure: (_) => ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('인증 정보 삭제에 실패했습니다. 다시 시도해 주세요.')),
-          ),
-        );
-      } finally {
-        if (context.mounted) signingOut.value = false;
-      }
-    }
-
-    Future<void> refresh() async {
-      try {
-        await Future.wait<Object?>([
-          ref.refresh(myCognitiveTypeScoresProvider.future),
-          ref.refresh(myWeakConceptsProvider.future),
-        ]);
-      } catch (_) {
-        // 각 영역에서 오류와 재시도 버튼을 표시
-      }
-    }
 
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 720),
         child: RefreshIndicator(
           color: AppColor.brandColor,
-          onRefresh: refresh,
+          onRefresh: () => onRefresh(ref),
           child: ListView(
             key: const PageStorageKey('profile_content'),
             physics: const AlwaysScrollableScrollPhysics(),
@@ -103,7 +79,9 @@ class ProfilePage extends BasePage {
                     ),
                     const SizedBox(width: 12),
                     TextButton(
-                      onPressed: signingOut.value ? null : signOut,
+                      onPressed: signingOut.value
+                          ? null
+                          : () => onSignOutTapped(ref, signingOut),
                       style: TextButton.styleFrom(
                         foregroundColor: AppColor.dark,
                         padding: EdgeInsets.zero,

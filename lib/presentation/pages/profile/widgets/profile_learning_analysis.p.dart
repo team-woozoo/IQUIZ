@@ -1,12 +1,13 @@
 part of '../profile_page.dart';
 
-class _ProfileLearningAnalysis extends ConsumerWidget {
+class _ProfileLearningAnalysis extends ConsumerWidget
+    with ProfileState, ProfileEvent {
   const _ProfileLearningAnalysis({required this.nickname});
   final String nickname;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final scores = ref.watch(myCognitiveTypeScoresProvider);
+    final scores = scoresAsync(ref);
     return ColoredBox(
       color: AppColor.surfaceSubtle,
       child: Padding(
@@ -48,8 +49,7 @@ class _ProfileLearningAnalysis extends ConsumerWidget {
                         textAlign: TextAlign.center,
                       ),
                       TextButton(
-                        onPressed: () =>
-                            ref.invalidate(myCognitiveTypeScoresProvider),
+                        onPressed: () => onRetryScores(ref),
                         child: const Text('다시 시도'),
                       ),
                     ],
@@ -60,14 +60,7 @@ class _ProfileLearningAnalysis extends ConsumerWidget {
             const SizedBox(height: 31),
             FilledButton(
               key: const ValueKey('profile_fill_weaknesses'),
-              onPressed: () => showModalBottomSheet<void>(
-                context: context,
-                showDragHandle: true,
-                useSafeArea: true,
-                isScrollControlled: true,
-                backgroundColor: AppColor.white,
-                builder: (_) => const _ProfileWeakConceptsSheet(),
-              ),
+              onPressed: () => onWeakConceptsTapped(context),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColor.primaryAction,
                 foregroundColor: AppColor.white,

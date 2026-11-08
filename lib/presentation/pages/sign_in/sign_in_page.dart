@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:iquiz/app/router/router.dart';
 import 'package:iquiz/app/style/app_text_style.dart';
 import 'package:iquiz/core/constants/app_color.dart';
+import 'package:iquiz/core/logger/log.dart';
 import 'package:iquiz/presentation/providers/user/user_auth_provider.dart';
 import 'package:iquiz/presentation/widgets/auth/auth_form.dart';
 import 'package:iquiz/presentation/widgets/base_page.dart';

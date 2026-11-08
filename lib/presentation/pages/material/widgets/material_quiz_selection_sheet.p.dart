@@ -1,7 +1,7 @@
 part of '../material_detail_page.dart';
 
 class _MaterialQuizSelectionSheet extends HookConsumerWidget
-    with MaterialDetailState {
+    with MaterialDetailState, MaterialDetailEvent {
   const _MaterialQuizSelectionSheet({required this.material});
 
   final StudyMaterialEntity material;
@@ -9,9 +9,7 @@ class _MaterialQuizSelectionSheet extends HookConsumerWidget
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selecting = useRef(false);
-    final quizzes = ref.watch(
-      materialQuizzesProvider(materialId: material.materialId),
-    );
+    final quizzes = quizzesAsync(ref, material.materialId);
     return SafeArea(
       top: false,
       child: SizedBox(
@@ -42,9 +40,7 @@ class _MaterialQuizSelectionSheet extends HookConsumerWidget
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, _) => _MaterialMessage(
                   message: materialError(error),
-                  onRetry: () => ref.invalidate(
-                    materialQuizzesProvider(materialId: material.materialId),
-                  ),
+                  onRetry: () => onRetryQuizzes(ref, material.materialId),
                 ),
                 data: (items) => items.isEmpty
                     ? const _MaterialMessage(message: '아직 생성한 퀴즈가 없어요.')

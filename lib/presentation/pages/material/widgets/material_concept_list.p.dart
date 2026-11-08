@@ -1,14 +1,14 @@
 part of '../material_detail_page.dart';
 
-class _MaterialConceptList extends ConsumerWidget with MaterialDetailState {
+class _MaterialConceptList extends ConsumerWidget
+    with MaterialDetailState, MaterialDetailEvent {
   const _MaterialConceptList({required this.materialId});
 
   final int materialId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => ref
-      .watch(myMaterialConceptsProvider(materialId: materialId))
-      .when(
+  Widget build(BuildContext context, WidgetRef ref) =>
+      conceptsAsync(ref, materialId).when(
         skipLoadingOnReload: false,
         loading: () => const SliverToBoxAdapter(
           child: Padding(
@@ -19,9 +19,7 @@ class _MaterialConceptList extends ConsumerWidget with MaterialDetailState {
         error: (error, _) => SliverToBoxAdapter(
           child: _MaterialMessage(
             message: materialError(error),
-            onRetry: () => ref.invalidate(
-              myMaterialConceptsProvider(materialId: materialId),
-            ),
+            onRetry: () => onRetryConcepts(ref, materialId),
           ),
         ),
         data: (items) => items.isEmpty

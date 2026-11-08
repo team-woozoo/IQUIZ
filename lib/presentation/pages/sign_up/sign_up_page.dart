@@ -6,6 +6,7 @@ import 'package:iquiz/app/di/auth/auth.dart';
 import 'package:iquiz/app/router/router.dart';
 import 'package:iquiz/app/style/app_text_style.dart';
 import 'package:iquiz/core/constants/app_color.dart';
+import 'package:iquiz/core/logger/log.dart';
 import 'package:iquiz/presentation/widgets/auth/auth_form.dart';
 import 'package:iquiz/presentation/widgets/base_page.dart';
 
