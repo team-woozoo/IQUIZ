@@ -9,6 +9,7 @@ import 'package:iquiz/core/constants/app_color.dart';
 import 'package:iquiz/core/exception/custom_exception.dart';
 import 'package:iquiz/features/quiz/repositories/entities/wrong_answer_entity.dart';
 import 'package:iquiz/features/quiz/repositories/entities/study_material_entity.dart';
+import 'package:iquiz/features/quiz/repositories/enums/quiz_format.enum.dart';
 import 'package:iquiz/presentation/pages/wrong_answers/providers/my_wrong_answers_provider.dart';
 import 'package:iquiz/presentation/providers/material/material_providers.dart';
 import 'package:iquiz/presentation/widgets/base_page.dart';
@@ -46,7 +47,7 @@ class WrongAnswersPage extends BasePage
                 children: [
                   const SizedBox(width: 16),
                   Expanded(
-                    child: Text('오답노트', style: AppTextStyle.semiBold(24, 36.4)),
+                    child: Text('오답노트', style: AppTextStyle.semiBold(24, 31.2)),
                   ),
                   IconButton(
                     tooltip: '오답 검색',
@@ -89,13 +90,13 @@ class WrongAnswersPage extends BasePage
             //       ),
             //     ),
             //   ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             _WrongAnswerFilters(
               materials: availableMaterials,
               materialId: materialId.value,
               onSelected: (id) => materialId.value = id,
             ),
-            const SizedBox(height: 15),
+            const SizedBox(height: 16),
             Expanded(
               child: RefreshIndicator(
                 color: AppColor.brandColor,
@@ -169,7 +170,7 @@ class WrongAnswersPage extends BasePage
     physics: const AlwaysScrollableScrollPhysics(),
     children: [
       Padding(
-        padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+        padding: const EdgeInsets.all(24),
         child: Center(child: child),
       ),
     ],

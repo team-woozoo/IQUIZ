@@ -22,41 +22,50 @@ class _WrongAnswerTile extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    item.conceptName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyle.medium(16, 22.4),
+                  child: Row(
+                    children: [
+                      ExcludeSemantics(
+                        child: Container(
+                          width: 27,
+                          height: 27,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColor.splashBackground,
+                            ),
+                          ),
+                          child: SvgPicture.asset('assets/icons/note_pdf.svg'),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColor.surfaceSubtle,
+                            borderRadius: BorderRadius.circular(100),
+                          ),
+                          child: Text(
+                            item.format == QuizFormat.ox
+                                ? 'OX퀴즈'
+                                : '객관식 ${item.options.length}지선다',
+                            style: AppTextStyle.reqular(
+                              13,
+                              18.85,
+                            ).copyWith(color: AppColor.dark),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    item.materialTitle,
-                    maxLines: 1,
-                    textAlign: TextAlign.right,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyle.medium(16, 22.4),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 2),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    _date(item.lastWrongAt.toLocal()),
-                    style: AppTextStyle.reqular(
-                      13,
-                      18.85,
-                    ).copyWith(color: AppColor.secondaryText),
-                  ),
-                ),
                 Text(
-                  item.sourcePageNo == null
-                      ? 'PDF'
-                      : 'PDF  ${item.sourcePageNo}페이지',
+                  _date(item.lastWrongAt.toLocal()),
                   style: AppTextStyle.reqular(
                     13,
                     18.85,
@@ -64,8 +73,48 @@ class _WrongAnswerTile extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            Text(item.content, style: AppTextStyle.reqular(15, 21.75)),
+            const SizedBox(height: 6),
+            ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 27),
+              child: LayoutBuilder(
+                builder: (context, constraints) => Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item.materialTitle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyle.medium(14, 20.3),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: (constraints.maxWidth - 12) / 2,
+                      ),
+                      child: Text(
+                        item.conceptName,
+                        maxLines: 2,
+                        textAlign: TextAlign.right,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyle.reqular(
+                          13,
+                          18.85,
+                        ).copyWith(color: AppColor.tertiaryText),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              item.content,
+              style: AppTextStyle.reqular(
+                15,
+                21.75,
+              ).copyWith(color: AppColor.danger),
+            ),
           ],
         ),
       ),
