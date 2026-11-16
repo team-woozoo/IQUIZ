@@ -8,7 +8,6 @@ class _HomeBottomNavigation extends ConsumerWidget with HomeState, HomeEvent {
     final current = currentNavigationTab(ref);
     final noteSelected = current == HomeNavigationTab.note;
     final profileSelected = current == HomeNavigationTab.profile;
-    final noteStyle = current != HomeNavigationTab.home;
     void select(HomeNavigationTab tab) => onNavigationTabSelected(ref, tab);
     return Material(
       color: AppColor.white,
@@ -25,7 +24,6 @@ class _HomeBottomNavigation extends ConsumerWidget with HomeState, HomeEvent {
                   ? 'assets/icons/note_home.svg'
                   : 'assets/home/home.svg',
               selected: current == HomeNavigationTab.home,
-              noteStyle: noteStyle,
               onTap: () => select(HomeNavigationTab.home),
             ),
             _HomeTabButton(
@@ -35,8 +33,6 @@ class _HomeBottomNavigation extends ConsumerWidget with HomeState, HomeEvent {
                   ? 'assets/icons/note_selected.svg'
                   : 'assets/home/note.svg',
               selected: noteSelected,
-              tint: profileSelected ? AppColor.disabledText : null,
-              noteStyle: noteStyle,
               onTap: () => select(HomeNavigationTab.note),
             ),
             _HomeTabButton(
@@ -47,9 +43,7 @@ class _HomeBottomNavigation extends ConsumerWidget with HomeState, HomeEvent {
                   : noteSelected
                   ? 'assets/icons/note_profile.svg'
                   : 'assets/home/profile.svg',
-              noteStyle: noteStyle,
               selected: profileSelected,
-              tint: profileSelected ? null : AppColor.disabledText,
               onTap: () => select(HomeNavigationTab.profile),
             ),
           ],
@@ -66,8 +60,6 @@ class _HomeTabButton extends StatelessWidget {
     required this.asset,
     this.selected = false,
     this.onTap,
-    this.noteStyle = false,
-    this.tint,
   });
 
   final String label;
@@ -75,8 +67,6 @@ class _HomeTabButton extends StatelessWidget {
   final String asset;
   final bool selected;
   final VoidCallback? onTap;
-  final bool noteStyle;
-  final Color? tint;
 
   @override
   Widget build(BuildContext context) => Expanded(
@@ -102,9 +92,10 @@ class _HomeTabButton extends StatelessWidget {
                       : Alignment.center,
                   child: SvgPicture.asset(
                     asset,
-                    colorFilter: tint == null
-                        ? null
-                        : ColorFilter.mode(tint!, BlendMode.srcIn),
+                    colorFilter: ColorFilter.mode(
+                      selected ? AppColor.iconColor : AppColor.disabledText,
+                      BlendMode.srcIn,
+                    ),
                   ),
                 ),
               ),
@@ -113,11 +104,7 @@ class _HomeTabButton extends StatelessWidget {
                 label,
                 textAlign: TextAlign.center,
                 style: AppTextStyle.medium(13, 13 * 1.45).copyWith(
-                  color: selected
-                      ? noteStyle
-                            ? AppColor.primaryAction
-                            : AppColor.brandColor
-                      : AppColor.disabledText,
+                  color: selected ? AppColor.iconColor : AppColor.disabledText,
                 ),
               ),
             ],
